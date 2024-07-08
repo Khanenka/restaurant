@@ -21,8 +21,8 @@ public class ProductUtil {
         productDTO.setNameProduct(product.getNameProduct());
         productDTO.setPriceProduct(product.getPriceProduct());
 
-        List<ProductCategory> productCategoryDTOS = product.getProductCategories().stream()
-                .map(pc -> new ProductCategory(pc.getIdProductCategory(),pc.getNameProductCategory(), pc.getTypeProductCategory()))
+        List<ProductCategoryDTO> productCategoryDTOS = product.getProductCategories().stream()
+                .map(pc -> new ProductCategoryDTO(pc.getIdProductCategory(),pc.getNameProductCategory(), pc.getTypeProductCategory()))
                 .collect(Collectors.toList());
 
         productDTO.setProductCategory(productCategoryDTOS);

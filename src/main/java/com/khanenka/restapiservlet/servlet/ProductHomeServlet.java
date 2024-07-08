@@ -10,6 +10,7 @@ import com.khanenka.restapiservlet.repository.impl.ProductDaoImpl;
 import com.khanenka.restapiservlet.util.ProductUtil;
 
 import javax.servlet.RequestDispatcher;
+import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -24,18 +25,12 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@WebServlet(name = "/", urlPatterns = "/test")
+@WebServlet("/product")
 public class ProductHomeServlet extends HttpServlet {
 
     Connection conn;
-    RequestDispatcher rd;
-    static String sqlCreateProductTable = "CREATE TABLE IF NOT EXISTS Product (\n" +
-            "    idProduct SERIAL PRIMARY KEY,\n" +
-            "    nameProduct NOT NULL UNIQUE VARCHAR(100),\n" +
-            "    priceProduct DECIMAL(10, 2),\n" +
-            "    quantityProduct INT,\n" +
-            "    availableProduct BOOLEAN\n" +
-            ");";
+
+
 
     private ProductDao productDao;
 
@@ -48,19 +43,14 @@ public class ProductHomeServlet extends HttpServlet {
     // properties.load(Thread.currentThread().getContextClassLoader().getResourceAsStream("C:/Users/leonid/IdeaProjects/RestApiServlet/src/main/resources/db.properties"));
 
 
-    //    public void init(ServletConfig servletConfig) {
-//        try {
-//            super.init(servletConfig);
-//            Connection conn = DBConnection.getConnection();
-//            Statement stmt = conn.createStatement();
-//            {
-//                stmt.executeUpdate(sqlCreateProductTable);
-//            }
-//        } catch (ServletException | SQLException ex) {
-//            throw new RuntimeException(ex);
-//        }
-//        DBConnection.closeConnection(conn);
-//    }
+    @Override
+    public void init(ServletConfig servletConfig) throws ServletException {
+
+
+        productDao.createTableProduct();
+        super.init(servletConfig);
+    }
+
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         request.setCharacterEncoding("UTF-8");

@@ -10,6 +10,7 @@ import java.sql.SQLException;
 import java.util.List;
 
 public interface ProductDao {
+    void createTableProduct();
 
     void addProduct(ProductDTO product) throws SQLException, Exception;
     List<ProductDTO> getAllProducts() throws SQLException;

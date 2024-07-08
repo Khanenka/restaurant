@@ -16,5 +16,5 @@ public class ProductDTO {
     private long idProduct;
     private String nameProduct;
     private BigDecimal priceProduct;
-    private List<ProductCategory> productCategory;
+    private List<ProductCategoryDTO> productCategory;
 }

@@ -15,34 +15,54 @@ import org.slf4j.LoggerFactory;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.math.BigDecimal;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
 
 public class ProductDaoImpl implements ProductDao {
+    static final String QUERY_CREATE_TABLE_PRODUCT = "create table if not exists product (idProduct INT PRIMARY KEY,\n" +
+            "nameProduct character varying(100),\n" +
+            "tpriceProduct numeric(10,2),\n" +
+            "quantityProduct INT,\n" +
+            "availableProduct boolean\n)";
     static final String QUERY_INSERT_PRODUCT = "INSERT INTO product (nameProduct,priceProduct, quantityProduct, availableProduct) VALUES ( ?,?,?,?)";
-    static final String QUERY_SELECT_ALL_PRODUCT = "SELECT \"idProduct\",\"nameProduct\",\"priceProduct\",\"quantityProduct\",\"availableProduct\" FROM product";
+    static final String QUERY_SELECT_ALL_PRODUCT = "SELECT \"idproduct\",\"nameproduct\",\"priceproduct\",\"quantityproduct\",\"availableproduct\" FROM product";
 
-    static final String UPDATE_PRODUCT_SQL = "UPDATE product set \"nameProduct\" = ?, \"priceProduct\" = ? WHERE \"idProduct\" = ?;";
+    static final String UPDATE_PRODUCT_SQL = "UPDATE product set \"nameProduct\" = ?, \"priceproduct\" = ? WHERE \"idproduct\" = ?;";
 
-    static final String QUERY_DELETE_PRODUCT = "DELETE FROM product WHERE \"idProduct\"=?";
+    static final String QUERY_DELETE_PRODUCT = "DELETE FROM product WHERE \"idproduct\"=?";
     static final String QUERY_SELECT_PRODUCT_BY_NAME = "SELECT * FROM product where nameProduct = ?;";
-    static final String QUERY_PRODUCT = "INSERT INTO public.product (\"idProduct\", \"nameProduct\", \"priceProduct\", \"quantityProduct\", \"availableProduct\") VALUES (?, ?, ?, ?, ?)";
+    static final String QUERY_PRODUCT = "INSERT INTO product (\"idproduct\", \"nameproduct\", \"priceproduct\") VALUES (?, ?,?)";
     static final String QUERY_INSERT_PRODUCT_PRODUCT_CATEGORY = "INSERT INTO product_productcategory (product_id, productcategory_id) VALUES (?, ?)";
-    static final String QUERY_INSERT_PRODUCT_CATEGORY = "INSERT INTO productcategory (id,name, type) VALUES (?,?, ?)";
+    static final String QUERY_INSERT_PRODUCT_CATEGORY = "INSERT INTO productcategory (\"id\",\"name\", \"type\") VALUES (?, ?, ?)";
     static final String QUERY_JOIN_PRODUCT_PRODUCT_CATEGORY_BY_ID = "SELECT pc.* FROM productcategory pc JOIN product_productcategory ppc ON pc.id = ppc.productcategory_id WHERE ppc.product_id = ?";
-    static final String QUERY_DELETE_PRODUCT_PRODUCT_CATEGORY_BY_PRODUCT_ID = "DELETE FROM \"product_productcategory\" WHERE \"product_id\" = ?";
+    static final String QUERY_DELETE_PRODUCT_PRODUCT_CATEGORY_BY_PRODUCT_ID = "DELETE FROM product_productcategory WHERE \"product_id\" = ?";
 
-    static final String NAME_PRODUCT = "nameProduct";
-    static final String PRICE_PRODUCT = "priceProduct";
+    static final String NAME_PRODUCT = "nameproduct";
+    static final String PRICE_PRODUCT = "priceproduct";
     Connection connection = DBConnection.getConnection();
 
 
     Logger logger = LoggerFactory.getLogger(ProductDaoImpl.class);
+
+    @Override
+    public void createTableProduct() {
+        connection = DBConnection.getConnection();
+
+        try {
+            Statement statement = connection.createStatement();
+
+
+            statement.executeUpdate(QUERY_CREATE_TABLE_PRODUCT);
+            logger.info("Product table created successfully");
+
+            statement.close();
+            connection.close();
+        } catch (SQLException e) {
+            logger.info("Error creating product table: " + e.getMessage());
+        }
+    }
 
     @Override
     public void addProduct(ProductDTO product) throws Exception {
@@ -65,7 +85,7 @@ public class ProductDaoImpl implements ProductDao {
             try (PreparedStatement categoryStatement = connection.prepareStatement(QUERY_INSERT_PRODUCT_CATEGORY)) {
                 try (PreparedStatement productProductCategoryStatement = connection.prepareStatement(QUERY_INSERT_PRODUCT_PRODUCT_CATEGORY)) {
 
-                    for (ProductCategory cat : product.getProductCategory()) {
+                    for (ProductCategoryDTO cat : product.getProductCategory()) {
                         categoryStatement.setLong(1, cat.getIdProductCategory());
                         categoryStatement.setString(2, cat.getNameProductCategory());
                         categoryStatement.setString(3, String.valueOf(cat.getTypeProductCategory()));
@@ -82,9 +102,12 @@ public class ProductDaoImpl implements ProductDao {
 
                     productProductCategoryStatement.executeBatch();
 
+
                     connection.commit();
                 }
             }
+//                }
+//            }
         } catch (SQLException e) {
             throw new DatabaseConnectionException("Failed to connect to the database");
         }
@@ -114,9 +137,9 @@ public class ProductDaoImpl implements ProductDao {
                     categoryResult = productCategoryStatement.executeQuery();
 
 
-                    List<ProductCategory> productCategories = new ArrayList<>();
+                    List<ProductCategoryDTO> productCategories = new ArrayList<>();
                     while (categoryResult.next()) {
-                        ProductCategory category = new ProductCategory();
+                        ProductCategoryDTO category = new ProductCategoryDTO();
                         category.setNameProductCategory(categoryResult.getString("name"));
                         category.setTypeProductCategory(CategoryType.valueOf(categoryResult.getString("type")));
                         productCategories.add(category);
@@ -154,7 +177,7 @@ public class ProductDaoImpl implements ProductDao {
                     deleteCategoriesStatement.executeUpdate();
 
                     try (PreparedStatement insertCategoriesStatement = connection.prepareStatement(QUERY_INSERT_PRODUCT_PRODUCT_CATEGORY)) {
-                        for (ProductCategory category : product.getProductCategory()) {
+                        for (ProductCategoryDTO category : product.getProductCategory()) {
                             insertCategoriesStatement.setLong(1, product.getIdProduct());
                             insertCategoriesStatement.setLong(2, category.getIdProductCategory());
                             insertCategoriesStatement.addBatch();
@@ -173,32 +196,22 @@ public class ProductDaoImpl implements ProductDao {
 
 
     @Override
-    public void deleteProduct(ProductDTO product) throws DatabaseConnectionException {
+    public void deleteProduct(ProductDTO product) throws Exception {
         connection = DBConnection.getConnection();
 
 
-        try {
-            connection.setAutoCommit(false);
+        connection.setAutoCommit(false);
+
+        PreparedStatement deleteStatement = connection.prepareStatement(QUERY_DELETE_PRODUCT);
+        deleteStatement.setLong(1, product.getIdProduct());
+        deleteStatement.executeUpdate();
+
+        PreparedStatement deleteProductCategoryStatement = connection.prepareStatement(QUERY_DELETE_PRODUCT_PRODUCT_CATEGORY_BY_PRODUCT_ID);
+        deleteProductCategoryStatement.setLong(1, product.getIdProduct());
+        deleteProductCategoryStatement.executeUpdate();
+
+        connection.commit();
 
 
-            try (PreparedStatement deleteStatement = connection.prepareStatement(QUERY_DELETE_PRODUCT)) {
-                deleteStatement.setLong(1, product.getIdProduct());
-                deleteStatement.executeUpdate();
-
-                try (PreparedStatement deleteProductCategoryStatement = connection.prepareStatement(QUERY_DELETE_PRODUCT_PRODUCT_CATEGORY_BY_PRODUCT_ID)) {
-                    deleteProductCategoryStatement.setLong(1, product.getIdProduct());
-                    deleteProductCategoryStatement.executeUpdate();
-
-                    connection.commit();
-                }
-            }
-        } catch (SQLException e) {
-            throw new DatabaseConnectionException("Failed to connect to the database");
-        }
     }
-
-
-
-
 }
-

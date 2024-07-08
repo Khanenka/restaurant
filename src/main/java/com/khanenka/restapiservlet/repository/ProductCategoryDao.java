@@ -11,6 +11,8 @@ import java.util.List;
 public interface ProductCategoryDao {
 
 
-    void addProductCategory(HttpServletRequest req, HttpServletResponse resp);
-    List<ProductCategoryDTO> getAllProductsCategory() throws RuntimeException, SQLException;
+   void addProductCategory(ProductCategoryDTO category) throws Exception;
+    List<ProductCategoryDTO> getAllProductCategories() throws SQLException;
+    void updateProductCategory(ProductCategoryDTO category) throws SQLException;
+    void deleteProductCategory(ProductCategoryDTO category) throws Exception;
 }

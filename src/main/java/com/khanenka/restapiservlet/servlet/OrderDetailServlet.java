@@ -6,6 +6,7 @@ import com.google.gson.JsonSyntaxException;
 import com.khanenka.restapiservlet.exception.DatabaseConnectionException;
 import com.khanenka.restapiservlet.model.productdto.OrderDetailDTO;
 import com.khanenka.restapiservlet.repository.OrderDetailDao;
+import com.khanenka.restapiservlet.repository.impl.OrderDetailDaoImpl;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -41,7 +42,7 @@ public class OrderDetailServlet extends HttpServlet {
     /**
      * Объект доступа к данным для операций с деталями заказов.
      */
-    static OrderDetailDao orderDetailDao;
+    static OrderDetailDao orderDetailDao = new OrderDetailDaoImpl();
 
     /**
      * Экземпляр Gson для работы с JSON.
@@ -59,26 +60,22 @@ public class OrderDetailServlet extends HttpServlet {
      * @throws IOException      В случае ошибок ввода-вывода.
      */
     @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) {
+        List<OrderDetailDTO> orderDetailDTOList = null;
         try {
             // Устанавливаем кодировку для запроса и ответа
             request.setCharacterEncoding(CHARSET_UTF8);
             response.setCharacterEncoding(CHARSET_UTF8);
-
-            List<OrderDetailDTO> orderDetailDTOList = null;
-
             // Получаем все детали заказов из базы данных
             orderDetailDTOList = orderDetailDao.getAllOrderDetails();
-
             // Конвертируем список деталей заказов в формат JSON
             JsonArray jsonArray = gson.toJsonTree(orderDetailDTOList).getAsJsonArray();
-
             // Устанавливаем тип контента и отправляем JSON в ответе
-            response.setContentType("application/json");
+            response.setContentType("application/json; charset=UTF-8");
             response.getWriter().print(jsonArray.toString());
-        } catch (SQLException | IOException e) {
+        } catch (RuntimeException | IOException | SQLException e) {
             // Логируем ошибки, если они произошли
-            e.printStackTrace();
+            log("Failed to get order", e);
         }
     }
 

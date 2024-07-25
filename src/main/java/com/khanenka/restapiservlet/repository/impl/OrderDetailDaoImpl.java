@@ -105,40 +105,46 @@ public class OrderDetailDaoImpl implements OrderDetailDao {
      */
     @Override
     public void addOrderDetail(OrderDetailDTO orderDetail) {
+        try {
+            connection.setAutoCommit(false); // Отключаем автоматическое подтверждение транзакций
+            // Подготовка SQL-запроса для вставки деталей заказа
+            try (PreparedStatement orderDetailStatement = connection.prepareStatement(QUERY_INSERT_ORDER_DETAIL)) {
+                // Отключаем автоматическую фиксацию транзакции
 
-        // Подготовка SQL-запроса для вставки деталей заказа
-        try (PreparedStatement orderDetailStatement = connection.prepareStatement(QUERY_INSERT_ORDER_DETAIL)) {
-            // Отключаем автоматическую фиксацию транзакции
-            connection.setAutoCommit(false);
 
-            // Установка параметров для запроса вставки деталей заказа
-            orderDetailStatement.setLong(1, orderDetail.getIdOrderDetail()); // ID деталей заказа
-            orderDetailStatement.setString(2, String.valueOf(orderDetail.getOrderStatus())); // Статус заказа
-            orderDetailStatement.setBigDecimal(3, orderDetail.getTotalAmauntOrderDetail()); // Общая сумма деталей заказа
+                // Установка параметров для запроса вставки деталей заказа
+                orderDetailStatement.setLong(1, orderDetail.getIdOrderDetail()); // ID деталей заказа
+                orderDetailStatement.setString(2, String.valueOf(orderDetail.getOrderStatus())); // Статус заказа
+                orderDetailStatement.setBigDecimal(3, orderDetail.getTotalAmauntOrderDetail()); // Общая сумма деталей заказа
 
-            // Подготовка SQL-запроса для вставки продуктов в детали заказа
-            try (PreparedStatement productOrderDetailStatement = connection.prepareStatement(QUERY_INSERT_ORDER_DETAIL_PRODUCT)) {
-                // Проходимся по списку продуктов в деталях заказа
-                for (ProductDTO product : orderDetail.getProducts()) {
-                    productOrderDetailStatement.setLong(1, orderDetail.getIdOrderDetail()); // Установка ID деталей заказа
-                    productOrderDetailStatement.setLong(2, product.getIdProduct()); // Установка ID продукта
-                    productOrderDetailStatement.addBatch(); // Добавление в пакет
+                // Проверяем, есть ли  продукт
+                if (orderDetail.getProducts() != null && !orderDetail.getProducts().isEmpty()) {
+                    // Подготовка SQL-запроса для вставки продуктов в детали заказа
+                    try (PreparedStatement productOrderDetailStatement = connection.prepareStatement(QUERY_INSERT_ORDER_DETAIL_PRODUCT)) {
+                        // Проходимся по списку продуктов в деталях заказа
+                        for (ProductDTO product : orderDetail.getProducts()) {
+                            productOrderDetailStatement.setLong(1, orderDetail.getIdOrderDetail()); // Установка ID деталей заказа
+                            productOrderDetailStatement.setLong(2, product.getIdProduct()); // Установка ID продукта
+                            productOrderDetailStatement.addBatch(); // Добавление в пакет
+                        }
+
+                        // Выполнение запроса для вставки деталей заказа
+                        orderDetailStatement.executeUpdate();
+                        // Выполнение пакетной вставки для всех продуктов
+                        productOrderDetailStatement.executeBatch();
+                    }
+                } else {
+                    logger.info("Product  null"); // Сообщение, если продуктов нет
+                    connection.commit(); // Подтверждение транзакции
                 }
-
-                // Выполнение запроса для вставки деталей заказа
-                orderDetailStatement.executeUpdate();
-                // Выполнение пакетной вставки для всех продуктов
-                productOrderDetailStatement.executeBatch();
-
-                // Коммит транзакции, фиксируем изменения в базе данных
+                // Подтверждение транзакции
                 connection.commit();
             }
         } catch (SQLException e) {
-            // Обработка исключения и выбрасывание нового исключения с сообщением об ошибке
-            throw new DatabaseConnectionException("Не удалось сохранить детали заказа в базе данных");
+            throw new DatabaseConnectionException("Failed to add order"); // Исключение при ошибке
         }
-
     }
+
 
     /**
      * Получает все детали заказов из базы данных.
@@ -146,15 +152,14 @@ public class OrderDetailDaoImpl implements OrderDetailDao {
      * @return список объектов {@link OrderDetailDTO} с деталями заказов
      * @throws SQLException если произошла ошибка при выполнении SQL-запроса
      */
-    public List<OrderDetailDTO> getAllOrderDetails() throws SQLException {
+    @Override
+    public List<OrderDetailDTO> getAllOrderDetails() {
         // Создаем список для хранения деталей заказов
         List<OrderDetailDTO> orderDetailList = new ArrayList<>();
-
         ResultSet resultSet;
         // Подготавливаем запрос к базе данных для выборки всех деталей заказов
         try (PreparedStatement statement = connection.prepareStatement(QUERY_SELECT_ALL_ORDER_DETAIL)) {
             resultSet = statement.executeQuery();
-
             // Обрабатываем каждый результат из выборки
             while (resultSet.next()) {
                 OrderDetailDTO orderDetail = new OrderDetailDTO();
@@ -164,7 +169,6 @@ public class OrderDetailDaoImpl implements OrderDetailDao {
                 orderDetail.setOrderStatus(OrderStatus.valueOf(resultSet.getString(ORDER_STATUS)));
                 // Устанавливаем общую сумму детали заказа
                 orderDetail.setTotalAmauntOrderDetail(resultSet.getBigDecimal(TOTAL_AMOUNT));
-
                 // Получаем продукты, связанные с данной деталью заказа
                 ResultSet productResultSet;
                 // Подготавливаем запрос к базе данных для выборки продуктов по ID детали заказа
@@ -180,19 +184,22 @@ public class OrderDetailDaoImpl implements OrderDetailDao {
                         // Устанавливаем ID продукта
                         product.setIdProduct(productResultSet.getLong("idproduct"));
                         // Устанавливаем название продукта
-                        product.setNameProduct(productResultSet.getString("nameProduct"));
+                        product.setNameProduct(productResultSet.getString("nameproduct"));
                         // Устанавливаем цену продукта
-                        product.setPriceProduct(productResultSet.getBigDecimal("priceProduct"));
+                        product.setPriceProduct(productResultSet.getBigDecimal("priceproduct"));
                         // Добавляем созданный продукт в список
                         products.add(product);
                     }
 
                     // Устанавливаем список продуктов в деталь заказа
                     orderDetail.setProducts(products);
+                    // Добавляем деталь заказа в общий список
+                    orderDetailList.add(orderDetail);
                 }
-                // Добавляем деталь заказа в общий список
-                orderDetailList.add(orderDetail);
             }
+
+        } catch (SQLException e) {
+            throw new DatabaseConnectionException("Failed to get all order details"); // Исключение при ошибке
         }
         // Возвращаем список деталей заказов
         return orderDetailList;

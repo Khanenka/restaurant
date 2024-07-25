@@ -190,7 +190,7 @@ public class ProductHomeServlet extends HttpServlet {
             response.getWriter().print(jsonArray.toString()); // Отправка списка продуктов клиенту
         } catch (RuntimeException | IOException e) {
             // Логирование ошибки при получении продуктов
-            log("Failed to create product product category", e);
+            log("Failed to get product ", e);
         }
     }
 }

@@ -31,8 +31,8 @@ import static com.khanenka.restapiservlet.servlet.ProductHomeServlet.CHARSET_UTF
  * Этот сервлет поддерживает операции создания, получения, обновления и удаления категорий продуктов.
  * Он использует DAO-объект для взаимодействия с базой данных.
  * </p>
- *
-
+ * <p>
+ * <p>
  * Поддерживаемые HTTP методы:
  * <ul>
  *     <li>POST - для добавления новой категории продукта</li>
@@ -40,7 +40,6 @@ import static com.khanenka.restapiservlet.servlet.ProductHomeServlet.CHARSET_UTF
  *     <li>PUT - для обновления существующей категории продукта</li>
  *     <li>DELETE - для удаления категории продукта</li>
  * </ul>
-
  *
  * @author Khanenka
  * @version 1.0
@@ -51,7 +50,7 @@ public class ProductCategoryServlet extends HttpServlet {
     // Инициализация DAO для работы с категориями продуктов
     static ProductCategoryDao productCategoryDao = new ProductCategoryDaoImpl();
     /**
-    * объект для работы с json
+     * объект для работы с json
      */
     final Gson gson = new Gson();
 

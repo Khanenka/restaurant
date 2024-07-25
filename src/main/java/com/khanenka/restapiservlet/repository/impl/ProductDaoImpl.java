@@ -19,7 +19,8 @@ import static com.khanenka.restapiservlet.repository.impl.ProductCategoryDaoImpl
 /**
  * Класс ProductDaoImpl реализует интерфейс ProductDao и предоставляет
  * основные операции для работы с продуктами в базе данных.
- *  @author Khanenka
+ *
+ * @author Khanenka
  */
 public class ProductDaoImpl implements ProductDao {
     // SQL-запросы для операций с продуктами
@@ -56,12 +57,14 @@ public class ProductDaoImpl implements ProductDao {
 
     /**
      * Конструктор с параметром подключения
+     *
      * @param connection
      */
     // Конструктор с параметром подключения
     public ProductDaoImpl(Connection connection) {
         this.connection = connection;
     }
+
     /**
      * Создает таблицу продуктов в базе данных, если она не существует.
      *
@@ -77,6 +80,7 @@ public class ProductDaoImpl implements ProductDao {
             throw new DatabaseConnectionException("Failed to create product" + e); // Исключение при ошибке
         }
     }
+
     /**
      * Создает таблицу категорий продуктов в базе данных.
      *
@@ -92,6 +96,7 @@ public class ProductDaoImpl implements ProductDao {
             logger.info("Error creating product category table: "); // Сообщение об ошибке
         }
     }
+
     /**
      * Создает связь между продуктами и категориями продуктов в базе данных.
      *
@@ -107,13 +112,13 @@ public class ProductDaoImpl implements ProductDao {
             throw new DatabaseConnectionException("Failed to create product product category"); // Исключение при ошибке
         }
     }
+
     /**
      * Добавляет новый продукт в базу данных.
      *
      * @param product продукт с именем и ценой.
-     *
      * @throws DatabaseConnectionException если не удалось добавить продукт.
-     * @throws IllegalArgumentException если цена продукта не положительна.
+     * @throws IllegalArgumentException    если цена продукта не положительна.
      */
     @Override
     public void addProduct(ProductDTOByNameAndPrice product) {
@@ -161,11 +166,11 @@ public class ProductDaoImpl implements ProductDao {
             throw new IllegalArgumentException(e.getMessage());
         }
     }
+
     /**
      * Получает список всех продуктов из базы данных.
      *
      * @return список DTO продуктов.
-     *
      * @throws DatabaseConnectionException если не удалось получить все продукты.
      */
     @Override
@@ -182,6 +187,7 @@ public class ProductDaoImpl implements ProductDao {
                 try (PreparedStatement productCategoryStatement = connection.prepareStatement(QUERY_JOIN_PRODUCT_PRODUCT_CATEGORY_BY_NAME)) {
                     productCategoryStatement.setString(1, product.getNameProduct());
                     categoryResult = productCategoryStatement.executeQuery(); // Получение категорий для каждого продукта
+
                     List<ProductCategoryDTOByNameAndType> productCategories = new ArrayList<>();
                     while (categoryResult.next()) {
                         ProductCategoryDTOByNameAndType category = new ProductCategoryDTOByNameAndType();
@@ -198,12 +204,12 @@ public class ProductDaoImpl implements ProductDao {
         }
         return productList; // Возврат списка всех продуктов
     }
+
     /**
      * Обновляет информацию о продукте.
      *
-     * @param product продукт с новой информацией.
+     * @param product           продукт с новой информацией.
      * @param updateNameProduct новое имя продукта.
-     *
      * @throws DatabaseConnectionException если не удалось обновить продукт.
      */
     @Override
@@ -256,10 +262,11 @@ public class ProductDaoImpl implements ProductDao {
             throw new DatabaseConnectionException("Не удалось обновить продукт");
         }
     }
+
     /**
      * Удаляет  продукт и связывающие её категории.
      *
-     * @param product  продукт, который нужно удалить.
+     * @param product продукт, который нужно удалить.
      * @throws DatabaseConnectionException Если произойдет ошибка при работе с базой данных.
      */
     @Override

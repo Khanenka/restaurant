@@ -20,11 +20,41 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class Product {
-
+    /**
+     * Поле id класса Product
+     */
     private long idProduct;
+    /**
+     * Поле имя класса Product
+     */
     private String nameProduct;
+    /**
+     * Поле цена класса Product
+     */
     private BigDecimal priceProduct;
+    /**
+     * Поле количество класса Product
+     */
     private int quantityProduct;
+    /**
+     * Поле наличие класса Product
+     */
     private boolean availableProduct;
+    /**
+     * Поле List Category класса Product
+     */
     private List<ProductCategory> productCategories;
+
+    /**
+     * Конструктор - создание нового объекта с определенными значениями
+     *
+     * @param idProduct    - id
+     * @param nameProduct  - имя
+     * @param priceProduct - цена
+     */
+    public Product(long idProduct, String nameProduct, BigDecimal priceProduct) {
+        this.idProduct = idProduct;
+        this.nameProduct = nameProduct;
+        this.priceProduct = priceProduct;
+    }
 }

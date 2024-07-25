@@ -2,15 +2,16 @@ package com.khanenka.restapiservlet.servlet;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
-import com.khanenka.restapiservlet.model.Product;
-import com.khanenka.restapiservlet.model.productDTO.ProductDTO;
-import com.khanenka.restapiservlet.model.productDTO.ProductDTOByNameAndPrice;
+import com.google.gson.JsonSyntaxException;
+import com.khanenka.restapiservlet.model.productdto.ProductDTOByNameAndPrice;
+import com.khanenka.restapiservlet.model.productdto.ProductDTOByNameAndTypeAndNewProduct;
+import com.khanenka.restapiservlet.repository.OrderDetailDao;
+import com.khanenka.restapiservlet.repository.ProductCategoryDao;
 import com.khanenka.restapiservlet.repository.ProductDao;
+import com.khanenka.restapiservlet.repository.impl.OrderDetailDaoImpl;
+import com.khanenka.restapiservlet.repository.impl.ProductCategoryDaoImpl;
 import com.khanenka.restapiservlet.repository.impl.ProductDaoImpl;
-import com.khanenka.restapiservlet.util.ProductUtil;
 
-import javax.servlet.RequestDispatcher;
-import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -20,131 +21,176 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
-import java.sql.Connection;
-import java.sql.SQLException;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * Сервлет для обработки запросов, связанных с продуктами .
+ * Поддерживает операции создания, обновления, удаления и получения продуктов.
+ *
+ * <p>Данный сервлет использует DAO (Data Access Object) для работы с данными
+ * продуктов и категорий продуктов. Все данные обрабатываются в формате JSON.</p>
+ *
+ * <p>Доступные методы:</p>
+ * <ul>
+ *     <li>{@link #doPost(HttpServletRequest, HttpServletResponse)} - добавляет новый продукт.</li>
+ *     <li>{@link #doPut(HttpServletRequest, HttpServletResponse)} - обновляет существующий продукт.</li>
+ *     <li>{@link #doDelete(HttpServletRequest, HttpServletResponse)} - удаляет продукт.</li>
+ *     <li>{@link #doGet(HttpServletRequest, HttpServletResponse)} - получает список всех продуктов.</li>
+ * </ul>
+ *
+ * <p>Кодировка для всех операций установлена на UTF-8.</p>
+ */
 @WebServlet("/product")
 public class ProductHomeServlet extends HttpServlet {
+    // Статические экземпляры DAO для работы с продуктами и заказами
+    static ProductDao productDao = new ProductDaoImpl();
+    /**
+     * экземпляр DAO для работы с категорями продуктов
+     */
+    final ProductCategoryDao productCategoryDao;
+    static OrderDetailDao orderDetailDao = new OrderDetailDaoImpl();
+    static final String CHARSET_UTF8 = "UTF-8"; // Кодировка для работы с строками
+    /**
+     * объект для работы с json
+     */
+    final Gson gson = new Gson();
 
-    Connection conn;
 
-
-
-    private ProductDao productDao;
-
-
+    /**
+     * Конструктор сервлета, инициализирующий DAO для категорий продуктов
+     */
+    // Конструктор сервлета, инициализирующий DAO для категорий продуктов
     public ProductHomeServlet() {
-        this.productDao = new ProductDaoImpl();
+        this.productCategoryDao = new ProductCategoryDaoImpl();
     }
 
-
-    // properties.load(Thread.currentThread().getContextClassLoader().getResourceAsStream("C:/Users/leonid/IdeaProjects/RestApiServlet/src/main/resources/db.properties"));
-
-
+    /**
+     * Инициализация сервлета.
+     * Создает необходимые таблицы в базе данных при старте сервлета.
+     */
     @Override
-    public void init(ServletConfig servletConfig) throws ServletException {
-
-
-        productDao.createTableProduct();
-        super.init(servletConfig);
+    public void init() {
+        productDao.createTableProduct(); // Создает таблицу с продуктами
+        productDao.createProductProductCategory(); // Создает связь между продуктами и категориями
+        productDao.createProductCategoryTable(); // Создает таблицу для категорий продуктов
+        orderDetailDao.createOrderDetailTable(); // Создает таблицу деталей заказов
+        orderDetailDao.createOrderDetailProductTable(); // Создает связь между деталями заказов и продуктами
     }
 
+    /**
+     * Обрабатывает POST-запрос для добавления нового продукта.
+     * Получает данные о продукте в формате JSON и сохраняет их в базе данных.
+     *
+     * @param request  Объект запроса, содержащий данные о продукте.
+     * @param response Объект ответа, используемый для отправки ответа клиенту.
+     */
     @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        request.setCharacterEncoding("UTF-8");
-
-        response.setCharacterEncoding("UTF-8");
-        BufferedReader reader = new BufferedReader(new InputStreamReader(request.getInputStream(), StandardCharsets.UTF_8));
-        String json = reader.lines().collect(Collectors.joining());
-
-
-        Gson gson = new Gson();
-        ProductDTO product = gson.fromJson(json, ProductDTO.class);
-        System.out.println(product);
-        Product product1 = ProductUtil.convertToEntity(product);
-
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) {
         try {
+            // Установка кодировки для входящих и исходящих данных
+            request.setCharacterEncoding(CHARSET_UTF8);
+            response.setCharacterEncoding(CHARSET_UTF8);
+            // Чтение JSON из тела запроса
+            BufferedReader reader = new BufferedReader(new InputStreamReader(request.getInputStream(), StandardCharsets.UTF_8));
+            String json = reader.lines().collect(Collectors.joining());
+            // Десериализация JSON в объект продукта
+            ProductDTOByNameAndPrice product = gson.fromJson(json, ProductDTOByNameAndPrice.class);
+            // Добавление продукта в базу данных
             productDao.addProduct(product);
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            // Логирование ошибки при добавлении продукта
+            log("Error add product" + e.getMessage());
         }
-
     }
 
+    /**
+     * Обрабатывает PUT-запрос для обновления существующего продукта.
+     * Получает обновленные данные о продукте в формате JSON и сохраняет их в базе данных.
+     *
+     * @param request  Объект запроса, содержащий новые данные о продукте.
+     * @param response Объект ответа, используемый для отправки ответа клиенту.
+     * @throws ServletException если возникла ошибка в процессе обработки.
+     * @throws IOException      если произошла ошибка ввода-вывода.
+     */
     @Override
     protected void doPut(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        request.setCharacterEncoding("UTF-8");
-
-        response.setCharacterEncoding("UTF-8");
-        BufferedReader reader = new BufferedReader(new InputStreamReader(request.getInputStream(), StandardCharsets.UTF_8));
-        String json = reader.lines().collect(Collectors.joining());
-
-        System.out.println(json);
-        Gson gson = new Gson();
-
-
-        ProductDTO product = gson.fromJson(json, ProductDTO.class);
-
-        System.out.println(product);
-//        Product product1 = ProductUtil.convertToEntity(product);
-
         try {
-            productDao.updateProduct(product);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+            // Установка кодировки для входящих данных
+            request.setCharacterEncoding(StandardCharsets.UTF_8.name());
+            // Установка кодировки для ответа
+            response.setCharacterEncoding(StandardCharsets.UTF_8.name());
+            response.setContentType("application/json; charset=UTF-8");
 
+            // Считывание JSON из запроса
+            BufferedReader reader = new BufferedReader(new InputStreamReader(request.getInputStream(), StandardCharsets.UTF_8));
+            String json = reader.lines().collect(Collectors.joining());
+            // Десериализация JSON
+            ProductDTOByNameAndTypeAndNewProduct product = gson.fromJson(json, ProductDTOByNameAndTypeAndNewProduct.class);
+
+            // Создание DTO для обновленного продукта
+            ProductDTOByNameAndPrice productDTOByNameAndPrice = new ProductDTOByNameAndPrice();
+            productDTOByNameAndPrice.setNameProduct(product.getNameProduct());
+            productDTOByNameAndPrice.setPriceProduct(product.getPriceProduct());
+            productDTOByNameAndPrice.setProductCategoryDTOS(product.getProductCategoryDTOS());
+
+            // Обновление в базе данных
+            productDao.updateProduct(productDTOByNameAndPrice, product.getNewProduct());
+        } catch (Exception e) {
+            // Логирование ошибки при обновлении продукта
+            log("Error update product: " + e.getMessage());
+        }
     }
 
+    /**
+     * Обрабатывает DELETE-запрос для удаления продукта.
+     * Получает данные о продукте в формате JSON и удаляет его из базы данных.
+     *
+     * @param req  Объект запроса для удаления продукта.
+     * @param resp Объект ответа, используемый для отправки ответа клиенту.
+     * @throws IOException если произошла ошибка ввода-вывода.
+     */
     @Override
-    protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        req.setCharacterEncoding("UTF-8");
-
-        resp.setCharacterEncoding("UTF-8");
-        BufferedReader reader = new BufferedReader(new InputStreamReader(req.getInputStream(), StandardCharsets.UTF_8));
-        String json = reader.lines().collect(Collectors.joining());
-
-        System.out.println(json);
-        Gson gson = new Gson();
-
-
-        ProductDTO product = gson.fromJson(json, ProductDTO.class);
-
-        System.out.println(product);
-//        Product product1 = ProductUtil.convertToEntity(product);
-
+    protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         try {
+            req.setCharacterEncoding(CHARSET_UTF8); // Установка utf-8
+            resp.setCharacterEncoding(CHARSET_UTF8);
+            BufferedReader reader = new BufferedReader(new InputStreamReader(req.getInputStream(), StandardCharsets.UTF_8));
+            String json = reader.lines().collect(Collectors.joining());
+            // Десериализация JSON
+            ProductDTOByNameAndPrice product = gson.fromJson(json, ProductDTOByNameAndPrice.class);
+            // Удаление продукта из базы данных
             productDao.deleteProduct(product);
+        } catch (JsonSyntaxException e) {
+            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST); // Ошибка 400 Bad Request
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            // Обработка других исключений
+            resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR); // Ошибка 500 Internal Server Error
         }
     }
 
+    /**
+     * Обрабатывает GET-запрос для получения списка всех продуктов.
+     * Возвращает список продуктов в формате JSON.
+     *
+     * @param request  Объект запроса.
+     * @param response Объект ответа, используемый для отправки списка продуктов клиенту.
+     */
     @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-
-        request.setCharacterEncoding("UTF-8");
-        response.setCharacterEncoding("UTF-8");
-
-
-        List<ProductDTO> productList = null;
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) {
+        List<ProductDTOByNameAndPrice> productList = null; // Список продуктов
         try {
-            productList = productDao.getAllProducts();
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
-        Gson gson = new Gson();
-        JsonArray jsonArray = gson.toJsonTree(productList).getAsJsonArray();
+            request.setCharacterEncoding(CHARSET_UTF8); // Установка utf-8
+            response.setCharacterEncoding(CHARSET_UTF8);
+            productList = productDao.getAllProducts(); // Получение всех продуктов
+            JsonArray jsonArray = gson.toJsonTree(productList).getAsJsonArray(); // Преобразование списка в JSON
 
-        response.setContentType("application/json");
-        response.getWriter().print(jsonArray.toString());
+            // Устанавливаем кодировку ответа
+            response.setContentType("application/json; charset=UTF-8");
+            response.getWriter().print(jsonArray.toString()); // Отправка списка продуктов клиенту
+        } catch (RuntimeException | IOException e) {
+            // Логирование ошибки при получении продуктов
+            log("Failed to create product product category", e);
+        }
     }
 }
-
-
-
-
-
-

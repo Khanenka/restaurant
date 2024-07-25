@@ -19,9 +19,22 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class OrderDetail {
+    /**
+     * Поле id класса OrderDetail
+     */
     private long idOrderDetail;
-    OrderStatus orderStatus;
-    List<Product> products; // (OneToMany)
-    BigDecimal totalAmauntOrderDetail;
+    /**
+     * Поле статус является ENUM класса OrderStatus
+     */
+    private OrderStatus orderStatus;
+    /**
+     * Поле totalAmauntOrderDetail класса OrderDetail
+     */
+    private BigDecimal totalAmauntOrderDetail;
+    /**
+     * Поле List продуктов класса OrderDetail
+     */
+    private List<Product> products; // (OneToMany)
+
 
 }

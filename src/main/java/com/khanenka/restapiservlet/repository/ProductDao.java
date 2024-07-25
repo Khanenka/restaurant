@@ -1,24 +1,59 @@
 package com.khanenka.restapiservlet.repository;
 
-import com.khanenka.restapiservlet.model.Product;
-import com.khanenka.restapiservlet.model.productDTO.ProductDTO;
-import com.khanenka.restapiservlet.model.productDTO.ProductDTOByNameAndPrice;
+import com.khanenka.restapiservlet.model.productdto.ProductDTOByNameAndPrice;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.sql.SQLException;
 import java.util.List;
 
+/**
+ * Интерфейс для управления продуктами в системе.
+ * Предоставляет методы для создания и управления таблицами продуктов и категорий,
+ * а также для добавления, получения, обновления и удаления продуктов.
+ * @author Khanenka
+ */
 public interface ProductDao {
+
+    /**
+     * Создает таблицу для хранения информации о продуктах.
+     */
     void createTableProduct();
 
-    void addProduct(ProductDTO product) throws SQLException, Exception;
-    List<ProductDTO> getAllProducts() throws SQLException;
-    void updateProduct(ProductDTO productDTO) throws Exception;
+    /**
+     * Создает связь между продуктами и категориями продуктов.
+     */
+    void createProductProductCategory();
 
-    void deleteProduct(ProductDTO product) throws Exception;
+    /**
+     * Создает таблицу категорий продуктов.
+     */
+    void createProductCategoryTable();
 
+    /**
+     * Добавляет новый продукт в систему.
+     *
+     * @param productDTOByNameAndPrice объект, содержащий информацию о продукте,
+     *                                  включая название и цену.
+     */
+    void addProduct(ProductDTOByNameAndPrice productDTOByNameAndPrice);
 
-//    ProductDTO findAll(HttpServletRequest request,HttpServletResponse);
+    /**
+     * Получает список всех продуктов из системы.
+     *
+     * @return список объектов ProductDTOByNameAndPrice, представляющих все продукты.
+     */
+    List<ProductDTOByNameAndPrice> getAllProducts();
 
+    /**
+     * Обновляет информацию о существующем продукте.
+     *
+     * @param productDTOByNameAndPrice объект, содержащий обновленную информацию о продукте.
+     * @param updateNameProduct название продукта, который нужно обновить.
+     */
+    void updateProduct(ProductDTOByNameAndPrice productDTOByNameAndPrice, String updateNameProduct);
+
+    /**
+     * Удаляет продукт из системы.
+     *
+     * @param productDTOByNameAndPrice объект, содержащий информацию о продукте, который нужно удалить.
+     */
+    void deleteProduct(ProductDTOByNameAndPrice productDTOByNameAndPrice);
 }

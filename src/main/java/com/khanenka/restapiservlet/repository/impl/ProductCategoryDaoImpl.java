@@ -27,14 +27,14 @@ import static com.khanenka.restapiservlet.repository.impl.ProductDaoImpl.*;
  */
 public class ProductCategoryDaoImpl implements ProductCategoryDao {
     // Запросы SQL для операций с таблицей productcategory
-    static final String QUERY_INSERT_PRODUCT_CATEGORY = "INSERT INTO productcategory (\"name\", \"type\") VALUES ( ?, ?)";
-    static final String QUERY_SELECT_ALL_PRODUCT_CATEGORY = "SELECT DISTINCT \"name\",\"type\" FROM productcategory";
-    static final String QUERY_JOIN_PRODUCT_PRODUCT_CATEGORY_BY_NAME = "SELECT DISTINCT p.nameproduct,p.priceproduct FROM product p JOIN product_productcategory ppc ON p.nameproduct = ppc.nameproduct WHERE ppc.name = ?";
-    static final String QUERY_DELETE_PRODUCT_PRODUCT_CATEGORY_BY_PRODUCT_NAME = "DELETE FROM product_productcategory WHERE \"nameproduct\" = ?";
-    static final String QUERY_DELETE_PRODUCT_PRODUCT_CATEGORY_BY_PRODUCT_CATEGORY_NAME = "DELETE FROM product_productcategory WHERE \"name\" = ?";
-    static final String QUERY_DELETE_PRODUCT_CATEGORY = "DELETE FROM productcategory WHERE \"name\" = ?";
-    static final String QUERY_PRODUCT_CATEGORY_TABLE = "CREATE TABLE IF NOT EXISTS productcategory(id SERIAL PRIMARY KEY , name character varying(255) ,  type character varying(255))";
-    static final String UPDATE_PRODUCT_CATEGORY_SQL = "UPDATE productcategory set name = ?, type = ? WHERE name = ?";
+   public static final String QUERY_INSERT_PRODUCT_CATEGORY = "INSERT INTO productcategory (\"name\", \"type\") VALUES ( ?, ?)";
+   public static final String QUERY_SELECT_ALL_PRODUCT_CATEGORY = "SELECT DISTINCT \"name\",\"type\" FROM productcategory";
+   public static final String QUERY_JOIN_PRODUCT_PRODUCT_CATEGORY_BY_NAME = "SELECT DISTINCT p.nameproduct,p.priceproduct FROM product p JOIN product_productcategory ppc ON p.nameproduct = ppc.nameproduct WHERE ppc.name = ?";
+   public static final String QUERY_DELETE_PRODUCT_PRODUCT_CATEGORY_BY_PRODUCT_NAME = "DELETE FROM product_productcategory WHERE \"nameproduct\" = ?";
+   public static final String QUERY_DELETE_PRODUCT_PRODUCT_CATEGORY_BY_PRODUCT_CATEGORY_NAME = "DELETE FROM product_productcategory WHERE \"name\" = ?";
+   public static final String QUERY_DELETE_PRODUCT_CATEGORY = "DELETE FROM productcategory WHERE \"name\" = ?";
+   public static final String QUERY_PRODUCT_CATEGORY_TABLE = "CREATE TABLE IF NOT EXISTS productcategory(id SERIAL PRIMARY KEY , name character varying(255) ,  type character varying(255))";
+   public static final String UPDATE_PRODUCT_CATEGORY_SQL = "UPDATE productcategory set name = ?, type = ? WHERE name = ?";
 
     // Константы для имен столбцов
     static final String CATEGORY_NAME = "name";
@@ -182,7 +182,7 @@ public class ProductCategoryDaoImpl implements ProductCategoryDao {
                     deleteCategoriesStatement.setString(1, category.getNameProductCategory());
                     deleteCategoriesStatement.executeUpdate(); // Удаляем старые связи
 
-                    try (PreparedStatement insertCategoriesStatement = connection.prepareStatement(QUERY_INSERT_PRODUCT_PRODUCT_CATEGORY)) {
+                        try (PreparedStatement insertCategoriesStatement = connection.prepareStatement(QUERY_INSERT_PRODUCT_PRODUCT_CATEGORY)) {
                         insertCategoriesStatement.setString(2, newCategory); // Устанавливаем новую категорию
                         for (ProductDTOByNameAndPrice productDTOByNameAndPrice : category.getProductDTOS()) {
                             insertCategoriesStatement.setString(1, productDTOByNameAndPrice.getNameProduct()); // Устанавливаем имя продукта

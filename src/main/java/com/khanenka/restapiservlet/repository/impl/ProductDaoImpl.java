@@ -24,26 +24,26 @@ import static com.khanenka.restapiservlet.repository.impl.ProductCategoryDaoImpl
  */
 public class ProductDaoImpl implements ProductDao {
     // SQL-запросы для операций с продуктами
-    static final String QUERY_CREATE_TABLE_PRODUCT = "create table if not exists product (idproduct SERIAL PRIMARY KEY,\n" +
+   public static final String QUERY_CREATE_TABLE_PRODUCT = "create table if not exists product (idproduct SERIAL PRIMARY KEY,\n" +
             "nameproduct character varying(100),\n" +
             "priceproduct decimal(10,2),\n" +
             "quantityproduct INT,\n" +
             "availableproduct boolean)";
 
-    static final String QUERY_INSERT_PRODUCT = "INSERT INTO product (nameproduct, priceproduct) VALUES (?,?)";
-    static final String QUERY_SELECT_ALL_PRODUCT = "SELECT \"nameproduct\",\"priceproduct\",\"quantityproduct\",\"availableproduct\" FROM product";
+   public static final String QUERY_INSERT_PRODUCT = "INSERT INTO product (nameproduct, priceproduct) VALUES (?,?)";
+    public static final String QUERY_SELECT_ALL_PRODUCT = "SELECT \"nameproduct\",\"priceproduct\",\"quantityproduct\",\"availableproduct\" FROM product";
 
-    static final String UPDATE_PRODUCT_SQL = "UPDATE product set \"nameproduct\" = ?, \"priceproduct\" = ? WHERE \"nameproduct\" = ?;";
-    static final String QUERY_DELETE_PRODUCT = "DELETE FROM product WHERE \"nameproduct\"=?";
+    public static final String UPDATE_PRODUCT_SQL = "UPDATE product set \"nameproduct\" = ?, \"priceproduct\" = ? WHERE \"nameproduct\" = ?;";
+    public static final String QUERY_DELETE_PRODUCT = "DELETE FROM product WHERE \"nameproduct\"=?";
     static final String QUERY_PRODUCT = "INSERT INTO product (\"nameproduct\", \"priceproduct\") VALUES ( ?,?)";
-    static final String QUERY_INSERT_PRODUCT_PRODUCT_CATEGORY = "INSERT INTO product_productcategory (nameproduct, name) VALUES (?, ?)";
-    static final String QUERY_INSERT_PRODUCT_CATEGORY = "INSERT INTO productcategory (\"name\", \"type\") VALUES ( ?, ?)";
-    static final String QUERY_JOIN_PRODUCT_PRODUCT_CATEGORY_BY_NAME = "SELECT DISTINCT pc.name,pc.type FROM productcategory pc JOIN product_productcategory ppc ON pc.name = ppc.name WHERE ppc.nameproduct = ?";
-    static final String QUERY_DELETE_PRODUCT_PRODUCT_CATEGORY_BY_PRODUCT_NAME = "DELETE FROM product_productcategory WHERE \"nameproduct\" = ?";
-    static final String QUERY_CREATE_PRODUCT_PRODUCT_CATEGORY_TABLE = "create table if not exists product_productcategory (name character varying(100), nameproduct character varying(100))";
+    public static final String QUERY_INSERT_PRODUCT_PRODUCT_CATEGORY = "INSERT INTO product_productcategory (nameproduct, name) VALUES (?, ?)";
+    public static final String QUERY_INSERT_PRODUCT_CATEGORY = "INSERT INTO productcategory (\"name\", \"type\") VALUES ( ?, ?)";
+    public static final String QUERY_JOIN_PRODUCT_PRODUCT_CATEGORY_BY_NAME = "SELECT DISTINCT pc.name,pc.type FROM productcategory pc JOIN product_productcategory ppc ON pc.name = ppc.name WHERE ppc.nameproduct = ?";
+    public static final String QUERY_DELETE_PRODUCT_PRODUCT_CATEGORY_BY_PRODUCT_NAME = "DELETE FROM product_productcategory WHERE \"nameproduct\" = ?";
+    public static final String QUERY_CREATE_PRODUCT_PRODUCT_CATEGORY_TABLE = "create table if not exists product_productcategory (name character varying(100), nameproduct character varying(100))";
 
-    static final String NAME_PRODUCT = "nameProduct"; // Имя продукта
-    static final String PRICE_PRODUCT = "priceProduct"; // Цена продукта
+   public static final String NAME_PRODUCT = "nameProduct"; // Имя продукта
+   public static final String PRICE_PRODUCT = "priceProduct"; // Цена продукта
     Connection connection = DBConnection.getConnection(); // Подключение к базе данных
 
     Logger logger = LoggerFactory.getLogger(ProductDaoImpl.class); // Логирование
@@ -58,7 +58,7 @@ public class ProductDaoImpl implements ProductDao {
     /**
      * Конструктор с параметром подключения
      *
-     * @param connection
+     * @param connection connection
      */
     // Конструктор с параметром подключения
     public ProductDaoImpl(Connection connection) {

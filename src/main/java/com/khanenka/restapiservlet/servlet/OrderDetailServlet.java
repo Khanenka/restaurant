@@ -56,8 +56,6 @@ public class OrderDetailServlet extends HttpServlet {
      *
      * @param request  Объект HttpServletRequest, содержащий информацию о запросе.
      * @param response Объект HttpServletResponse, используемый для формирования ответа.
-     * @throws ServletException В случае обработки ошибок сервлета.
-     * @throws IOException      В случае ошибок ввода-вывода.
      */
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) {
@@ -70,6 +68,7 @@ public class OrderDetailServlet extends HttpServlet {
             orderDetailDTOList = orderDetailDao.getAllOrderDetails();
             // Конвертируем список деталей заказов в формат JSON
             JsonArray jsonArray = gson.toJsonTree(orderDetailDTOList).getAsJsonArray();
+
             // Устанавливаем тип контента и отправляем JSON в ответе
             response.setContentType("application/json; charset=UTF-8");
             response.getWriter().print(jsonArray.toString());
@@ -99,10 +98,10 @@ public class OrderDetailServlet extends HttpServlet {
             // Читаем тело запроса с входящими данными JSON
             BufferedReader reader = new BufferedReader(new InputStreamReader(request.getInputStream(), StandardCharsets.UTF_8));
             String json = reader.lines().collect(Collectors.joining());
-
+            System.out.println(json);
             // Преобразуем JSON в объект OrderDetailDTO
             OrderDetailDTO orderDetailDTO = gson.fromJson(json, OrderDetailDTO.class);
-
+            System.out.println(orderDetailDTO);
             // Добавляем новую деталь заказа в базу данных
             orderDetailDao.addOrderDetail(orderDetailDTO);
         } catch (JsonSyntaxException e) {

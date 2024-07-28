@@ -1,6 +1,7 @@
 package com.khanenka.restapiservlet.util;
 
-import com.khanenka.restapiservlet.exception.DatabaseConnectionException;
+
+import org.testcontainers.containers.PostgreSQLContainer;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -18,13 +19,16 @@ import java.util.Properties;
  */
 public class DBConnection {
     private static Connection connection = null;
+    private static PostgreSQLContainer<?> postgreSQLContainer;
+
     /**
      * приватный конструктор
      */
     private DBConnection() {
     }
+
     /**
-     * метод ingleton - созданиеподключения
+     * метод singleton - создание подключения
      *
      * @return connection
      */
@@ -40,20 +44,37 @@ public class DBConnection {
                     // Загружаем свойства
                     properties.load(input);
                 }
-                // Получаем параметры подключения
                 String url = properties.getProperty("dbUrl");
                 String user = properties.getProperty("dbUsername");
                 String password = properties.getProperty("dbPassword");
                 String driver = properties.getProperty("dbDriver");
-                // Регистрация драйвера и создание соединения
+                String version =properties.getProperty("dbVersion");
+                // Используем Testcontainers
+                postgreSQLContainer = new PostgreSQLContainer<>(version)
+                        .withDatabaseName(url)
+                        .withUsername(user)
+                        .withPassword(password);
+
+                // Запускаем контейнер
+                postgreSQLContainer.start();
+
+                // Получаем параметры подключения
+                String urlContainer = postgreSQLContainer.getJdbcUrl();
+                String userContainer = postgreSQLContainer.getUsername();
+                String passwordContainer = postgreSQLContainer.getPassword();
                 Class.forName(driver);
-                connection = DriverManager.getConnection(url, user, password);
-            } catch (ClassNotFoundException | IOException ex) {
-                ex.printStackTrace();
-            } catch (SQLException e) {
-                throw new DatabaseConnectionException(e.getMessage());
+                // Получаем соединение
+                connection = DriverManager.getConnection(urlContainer, userContainer, passwordContainer);
+
+            } catch (ClassNotFoundException | SQLException e) {
+                throw new RuntimeException(e);
+            }catch (IOException e) {
+                throw new RuntimeException(e);
             }
         }
         return connection;
     }
+
+    // Также не забудьте реализовать метод закрытия соединения и контейнера
+
 }

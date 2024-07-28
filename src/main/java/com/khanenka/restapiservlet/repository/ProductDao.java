@@ -2,6 +2,7 @@ package com.khanenka.restapiservlet.repository;
 
 import com.khanenka.restapiservlet.model.productdto.ProductDTOByNameAndPrice;
 
+import java.sql.SQLException;
 import java.util.List;
 
 /**
@@ -33,7 +34,7 @@ public interface ProductDao {
      * @param productDTOByNameAndPrice объект, содержащий информацию о продукте,
      *                                  включая название и цену.
      */
-    void addProduct(ProductDTOByNameAndPrice productDTOByNameAndPrice);
+    void addProduct(ProductDTOByNameAndPrice productDTOByNameAndPrice) throws SQLException;
 
     /**
      * Получает список всех продуктов из системы.

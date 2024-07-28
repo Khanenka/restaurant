@@ -1,6 +1,7 @@
 package com.khanenka.restapiservlet.servlet;
 
 import com.google.gson.Gson;
+
 import com.khanenka.restapiservlet.exception.DatabaseConnectionException;
 import com.khanenka.restapiservlet.model.CategoryType;
 import com.khanenka.restapiservlet.model.productdto.ProductCategoryDTOByNameAndType;

@@ -30,18 +30,18 @@ import java.util.List;
  */
 public class OrderDetailDaoImpl implements OrderDetailDao {
     // Константы SQL запросов
-    static final String QUERY_INSERT_ORDER_DETAIL = "INSERT INTO order_detail (order_detail_id,order_status, total_amount) VALUES (?,?,?)";
-    static final String QUERY_SELECT_ALL_ORDER_DETAIL = "SELECT DISTINCT * FROM order_detail";
-    static final String UPDATE_ORDER_DETAIL_SQL = "UPDATE order_detail set order_status = ?, total_amount = ? WHERE order_detail_id = ?";
-    static final String QUERY_DELETE_ORDER_DETAIL = "DELETE FROM order_detail WHERE order_detail_id = ?";
-    static final String QUERY_SELECT_PRODUCTS_BY_ORDER_DETAIL_ID = "SELECT p.* FROM product p JOIN order_detail_product odp ON p.idproduct= odp.product_id WHERE odp.order_detail_id = ?";
-    static final String QUERY_INSERT_ORDER_DETAIL_PRODUCT = "INSERT INTO order_detail_product (order_detail_id, product_id) VALUES (?,?)";
-    static final String QUERY_DELETE_ORDER_DETAIL_PRODUCT_BY_ORDER_DETAIL_ID = "DELETE FROM order_detail_product WHERE order_detail_id = ?";
-    static final String QUERY_CREATE_TABLE_ORDER_DETAIL = "CREATE TABLE if not exists order_detail (order_detail_id  INT , order_status character varying(50) ,total_amount numeric(10,2))";
-    static final String QUERY_CREATE_TABLE_ORDER_DETAIL_PRODUCT = "create table  order_detail_product (order_detail_id INT,  product_id INT)";
+    public static final String QUERY_INSERT_ORDER_DETAIL = "INSERT INTO order_detail (order_detail_id,order_status, total_amount) VALUES (?,?,?)";
+    public static final String QUERY_SELECT_ALL_ORDER_DETAIL = "SELECT DISTINCT * FROM order_detail";
+    public static final String UPDATE_ORDER_DETAIL_SQL = "UPDATE order_detail set order_status = ?, total_amount = ? WHERE order_detail_id = ?";
+    public static final String QUERY_DELETE_ORDER_DETAIL = "DELETE FROM order_detail WHERE order_detail_id = ?";
+    public static final String QUERY_SELECT_PRODUCTS_BY_ORDER_DETAIL_ID = "SELECT p.* FROM product p JOIN order_detail_product odp ON p.idproduct= odp.product_id WHERE odp.order_detail_id = ?";
+    public static final String QUERY_INSERT_ORDER_DETAIL_PRODUCT = "INSERT INTO order_detail_product (order_detail_id, product_id) VALUES (?,?)";
+    public static final String QUERY_DELETE_ORDER_DETAIL_PRODUCT_BY_ORDER_DETAIL_ID = "DELETE FROM order_detail_product WHERE order_detail_id = ?";
+    public static final String QUERY_CREATE_TABLE_ORDER_DETAIL = "CREATE TABLE if not exists order_detail (order_detail_id  INT , order_status character varying(50) ,total_amount numeric(10,2))";
+    public static final String QUERY_CREATE_TABLE_ORDER_DETAIL_PRODUCT = "create table  order_detail_product (order_detail_id INT,  product_id INT)";
 
-    static final String ORDER_STATUS = "order_status";
-    static final String TOTAL_AMOUNT = "total_amount";
+    public static final String ORDER_STATUS = "order_status";
+    public static final String TOTAL_AMOUNT = "total_amount";
 
     Connection connection = DBConnection.getConnection();
     Logger logger = LoggerFactory.getLogger(OrderDetailDaoImpl.class);
@@ -150,7 +150,6 @@ public class OrderDetailDaoImpl implements OrderDetailDao {
      * Получает все детали заказов из базы данных.
      *
      * @return список объектов {@link OrderDetailDTO} с деталями заказов
-     * @throws SQLException если произошла ошибка при выполнении SQL-запроса
      */
     @Override
     public List<OrderDetailDTO> getAllOrderDetails() {

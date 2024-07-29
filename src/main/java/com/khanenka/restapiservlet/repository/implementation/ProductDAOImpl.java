@@ -7,16 +7,15 @@ import com.khanenka.restapiservlet.model.productdto.ProductDTOByNameAndPrice;
 import com.khanenka.restapiservlet.repository.ProductDao;
 import com.khanenka.restapiservlet.util.DBConnection;
 
-import java.math.BigDecimal;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.khanenka.restapiservlet.repository.impl.ProductCategoryDaoImpl.QUERY_PRODUCT_CATEGORY_TABLE;
-import static com.khanenka.restapiservlet.repository.impl.ProductDaoImpl.*;
+import static com.khanenka.restapiservlet.util.QueryInDB.*;
 
 
 public class ProductDAOImpl implements ProductDao {
+
     private Connection connection = DBConnection.getConnection();
 
     public ProductDAOImpl(Connection connection) {
@@ -88,7 +87,6 @@ public class ProductDAOImpl implements ProductDao {
                     categoryStatement.addBatch();
                 }
                 categoryStatement.executeBatch();
-//            }
             }
         }
     }
@@ -112,14 +110,13 @@ public class ProductDAOImpl implements ProductDao {
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
-
         return productList;
     }
 
-    private List<ProductCategoryDTOByNameAndType> getProductCategories(String productName) throws SQLException {
+    public List<ProductCategoryDTOByNameAndType> getProductCategories(String productName) throws SQLException {
         List<ProductCategoryDTOByNameAndType> productCategories = new ArrayList<>();
         try (PreparedStatement productCategoryStatement =
-                     connection.prepareStatement(QUERY_JOIN_PRODUCT_PRODUCT_CATEGORY_BY_NAME)) {
+                     connection.prepareStatement(QUERY_JOIN_PRODUCT_CATEGORY_PRODUCT_BY_NAME)) {
             productCategoryStatement.setString(1, productName);
             ResultSet categoryResult = productCategoryStatement.executeQuery();
             while (categoryResult.next()) {
@@ -133,32 +130,30 @@ public class ProductDAOImpl implements ProductDao {
     }
 
     @Override
-    public void updateProduct(ProductDTOByNameAndPrice product, String updatedNameProduct) throws DatabaseConnectionException {
+    public void updateProduct(ProductDTOByNameAndPrice product, String updatedNameProduct) {
         try {
             connection.setAutoCommit(false);
             try (PreparedStatement updateStatement = connection.prepareStatement(UPDATE_PRODUCT_SQL)) {
-                if (product.getPriceProduct().compareTo(BigDecimal.ZERO) <= 0) {
-                    throw new IllegalArgumentException("Price must be greater than zero");
-                }
-
                 updateStatement.setString(1, updatedNameProduct);
                 updateStatement.setBigDecimal(2, product.getPriceProduct());
                 updateStatement.setString(3, product.getNameProduct());
-
-                int rowsUpdated = updateStatement.executeUpdate();
-                if (rowsUpdated > 0) {
-                    deleteProductCategories(product.getNameProduct());
-                    insertUpdatedProductInJoinTable(updatedNameProduct, product.getProductCategoryDTOS());
-                    connection.commit();
-                } else {
-                    throw new SQLException("Failed to update product");
-                }
-            } catch (SQLException e) {
-                connection.rollback();
-                throw new DatabaseConnectionException("Failed to update product");
+                updateStatement.executeUpdate();
+                connection.commit();
             }
         } catch (SQLException e) {
             throw new DatabaseConnectionException("Database connection error");
+        }
+    }
+    public void updateProductProductCategory(ProductDTOByNameAndPrice productDTOByNameAndPrice) {
+        try {
+            connection.setAutoCommit(false);
+            PreparedStatement updateStatement = connection.prepareStatement(UPDATE_PRODUCT_PRODUCT_CATEGORY_BY_NAME);
+            updateStatement.setString(1, productDTOByNameAndPrice.getNewProduct());
+            updateStatement.setString(2, productDTOByNameAndPrice.getNameProduct());
+            updateStatement.executeUpdate();
+            connection.commit();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
         }
     }
 
@@ -193,7 +188,9 @@ public class ProductDAOImpl implements ProductDao {
         }
     }
 
-    private void deleteProductCategories(String productName) throws SQLException {
+
+
+    public void deleteProductCategories(String productName) throws SQLException {
         try (PreparedStatement deleteStatement =
                      connection.prepareStatement(QUERY_DELETE_PRODUCT_PRODUCT_CATEGORY_BY_PRODUCT_NAME)) {
             deleteStatement.setString(1, productName);
@@ -201,15 +198,13 @@ public class ProductDAOImpl implements ProductDao {
         }
     }
 
-    private void insertUpdatedProductInJoinTable
-            (String updatedProductName, List<ProductCategoryDTOByNameAndType> categories) throws SQLException {
-        try (PreparedStatement insertStatement = connection.prepareStatement(QUERY_INSERT_PRODUCT_PRODUCT_CATEGORY)) {
-            for (ProductCategoryDTOByNameAndType category : categories) {
-                insertStatement.setString(1, category.getNameProductCategory());
-                insertStatement.setString(2, updatedProductName);
-                insertStatement.addBatch();
-            }
-            insertStatement.executeBatch();
-        }
+    public void insertUpdatedProductInJoinTable
+            (String updatedProductName, ProductCategoryDTOByNameAndType categories) throws SQLException {
+        PreparedStatement insertStatement = connection.prepareStatement(QUERY_INSERT_PRODUCT_PRODUCT_CATEGORY);
+        insertStatement.setString(1, categories.getNameProductCategory());
+        insertStatement.setString(2, updatedProductName);
+        insertStatement.addBatch();
+        insertStatement.executeBatch();
+        connection.commit();
     }
 }

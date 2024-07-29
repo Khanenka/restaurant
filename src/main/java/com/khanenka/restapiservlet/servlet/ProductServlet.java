@@ -4,9 +4,6 @@ import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 import com.khanenka.restapiservlet.exception.DatabaseConnectionException;
 import com.khanenka.restapiservlet.model.productdto.ProductDTOByNameAndPrice;
-import com.khanenka.restapiservlet.model.productdto.ProductDTOByNameAndTypeAndNewProduct;
-import com.khanenka.restapiservlet.repository.ProductDao;
-import com.khanenka.restapiservlet.repository.impl.ProductDaoImpl;
 import com.khanenka.restapiservlet.repository.implementation.OrderDetailDAOImpl;
 import com.khanenka.restapiservlet.repository.implementation.ProductCategoryDAOImpl;
 import com.khanenka.restapiservlet.repository.implementation.ProductDAOImpl;
@@ -27,36 +24,51 @@ import java.sql.Connection;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static com.khanenka.restapiservlet.servlet.ProductHomeServlet.CHARSET_UTF8;
 
 @WebServlet("/products")
 public class ProductServlet extends HttpServlet {
-    Connection connection = DBConnection.getConnection();
+    static Connection connection = DBConnection.getConnection();
     private ProductService productService;
-    private ProductDAOImpl productDao = new ProductDAOImpl(connection);
-    private ProductCategoryDAOImpl productCategoryDao = new ProductCategoryDAOImpl(connection);
-    private OrderDetailDAOImpl orderDAO = new OrderDetailDAOImpl(connection);
+    static ProductDAOImpl productDao = new ProductDAOImpl(connection);
+    static ProductCategoryDAOImpl productCategoryDao = new ProductCategoryDAOImpl(connection);
+    static OrderDetailDAOImpl orderDAO = new OrderDetailDAOImpl(connection);
+    static final String CHARSET_UTF8 = "UTF-8";
+    static Gson gson = new Gson();
 
-    Gson gson = new Gson();
+    public ProductServlet(ProductDAOImpl productDao, ProductCategoryDAOImpl productCategoryDao, OrderDetailDAOImpl orderDAO) {
+        this.productService = new ProductService(productDao, productCategoryDao, orderDAO);
+    }
+
     @Override
     public void init() throws ServletException {
         super.init();
-        this.productService = new ProductService(productDao,productCategoryDao,orderDAO);
+        productService = new ProductService(productDao, productCategoryDao, orderDAO);
+        productDao.createTableProduct();
+        productDao.createProductProductCategory();
+        productDao.createProductCategoryTable();
+        orderDAO.createOrderDetailTable();
+        orderDAO.createOrderDetailProductTable();
+
 
     }
+
     @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) {
         response.setContentType("application/json; charset=UTF-8");
-        PrintWriter out = response.getWriter();
+        PrintWriter out = null;
         try {
-            List<ProductDTOByNameAndPrice> products = productService.getAllProducts();
-            String jsonResponse = convertToJson(products);
-            out.print(jsonResponse);
-            response.setStatus(HttpServletResponse.SC_OK);
-        } catch (DatabaseConnectionException e) {
-            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            out = response.getWriter();
+
+
+                List<ProductDTOByNameAndPrice> products = productService.getAllProducts();
+                String jsonResponse = convertToJson(products);
+                out.print(jsonResponse);
+                response.setStatus(HttpServletResponse.SC_OK);
+            } catch (DatabaseConnectionException | IOException e) {
+                response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            }
         }
-    }
+
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) {
@@ -77,8 +89,10 @@ public class ProductServlet extends HttpServlet {
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         }
     }
+
     @Override
     protected void doPut(HttpServletRequest request, HttpServletResponse response) throws IOException {
+
         response.setCharacterEncoding(StandardCharsets.UTF_8.name());
         response.setContentType("application/json; charset=UTF-8");
 
@@ -86,25 +100,25 @@ public class ProductServlet extends HttpServlet {
                 new InputStreamReader(request.getInputStream(), StandardCharsets.UTF_8))) {
             // Считывание и десериализация JSON
             String json = reader.lines().collect(Collectors.joining());
-            ProductDTOByNameAndTypeAndNewProduct product = gson.fromJson(
-                    json, ProductDTOByNameAndTypeAndNewProduct.class);
+            ProductDTOByNameAndPrice product = gson.fromJson(
+                    json, ProductDTOByNameAndPrice.class);
 
-            // Создание DTO для обновленного продукта
-            ProductDTOByNameAndPrice productDTOByNameAndPrice = getProductDTOByNameAndPriceNewCategory(product);
 
             // Обновление продукта через сервисный метод
-            productService.updateProduct(productDTOByNameAndPrice, product.getNewProduct());
+            productService.updateProduct(product, product.getNewProduct());
+
             response.setStatus(HttpServletResponse.SC_OK);
         } catch (DatabaseConnectionException e) {
             log("Database error: " + e.getMessage());
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            response.getWriter().write( e.getMessage());
+            response.getWriter().write(e.getMessage());
         } catch (Exception e) {
             log("Error updating product: " + e.getMessage());
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             response.getWriter().write(e.getMessage());
         }
     }
+
     @Override
     protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         try {
@@ -129,14 +143,7 @@ public class ProductServlet extends HttpServlet {
             resp.getWriter().write("Unexpected error: " + e.getMessage());
         }
     }
-    private ProductDTOByNameAndPrice getProductDTOByNameAndPriceNewCategory(
-            ProductDTOByNameAndTypeAndNewProduct product){
-        ProductDTOByNameAndPrice productDTOByNameAndPrice = new ProductDTOByNameAndPrice();
-        productDTOByNameAndPrice.setNameProduct(product.getNameProduct());
-        productDTOByNameAndPrice.setPriceProduct(product.getPriceProduct());
-        productDTOByNameAndPrice.setProductCategoryDTOS(product.getProductCategoryDTOS());
-        return productDTOByNameAndPrice;
-    }
+
     private String convertToJson(List<ProductDTOByNameAndPrice> products) {
         return gson.toJson(products);
     }

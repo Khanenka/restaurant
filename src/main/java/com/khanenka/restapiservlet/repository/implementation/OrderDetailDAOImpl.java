@@ -14,10 +14,14 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.khanenka.restapiservlet.repository.impl.OrderDetailDaoImpl.*;
-import static com.khanenka.restapiservlet.repository.impl.ProductDaoImpl.QUERY_INSERT_PRODUCT;
+import static com.khanenka.restapiservlet.util.QueryInDB.*;
+
 
 public class OrderDetailDAOImpl implements OrderDetailDao {
+
+
+    public static final String ORDER_STATUS = "order_status";
+    public static final String TOTAL_AMOUNT = "total_amount";
     private Connection connection = DBConnection.getConnection();
     Logger logger = LoggerFactory.getLogger(OrderDetailDAOImpl.class);
     public static final String QUERY_INSERT_PRODUCT_WITH_ID = "INSERT INTO product (idproduct,nameproduct, priceproduct) VALUES (?,?,?)";
@@ -186,6 +190,37 @@ public class OrderDetailDAOImpl implements OrderDetailDao {
     }
         @Override
     public void deleteOrderDetail(OrderDetailDTO orderDetail){
+            try {
+                // Устанавливаем режим авто-коммита в false для управления транзакциями вручную
+                connection.setAutoCommit(false);
 
+                // Подготовка SQL-запроса для удаления записи из таблицы OrderDetail
+                try (PreparedStatement deleteStatement = connection.prepareStatement(QUERY_DELETE_ORDER_DETAIL)) {
+                    // Установка значения параметра запроса (ID детали заказа)
+                    deleteStatement.setLong(1, orderDetail.getIdOrderDetail());
+                    // Выполнение обновления (удаление записи)
+                    deleteStatement.executeUpdate();
+
+
+                }
+            } catch (SQLException e) {
+                // В случае ошибки, откатить транзакцию и выбросить кастомное исключение
+                throw new DatabaseConnectionException(e.getMessage());
+            }
+        }
+        public void deleteOrderProductById(long orderDetailId){
+            // Подготовка SQL-запроса для удаления связанных продуктов по ID детали заказа
+            try (PreparedStatement deleteOrderDetailProductStatement = connection.prepareStatement(QUERY_DELETE_ORDER_DETAIL_PRODUCT_BY_ORDER_DETAIL_ID)) {
+                // Установка значения параметра запроса (ID детали заказа)
+                deleteOrderDetailProductStatement.setLong(1, orderDetailId);
+                // Выполнение обновления (удаление связанных продуктов)
+                deleteOrderDetailProductStatement.executeUpdate();
+
+                // Подтверждение транзакции
+                connection.commit();
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
+        }
     }
-}
+

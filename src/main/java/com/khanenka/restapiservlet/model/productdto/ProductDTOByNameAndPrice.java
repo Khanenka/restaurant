@@ -30,6 +30,7 @@ public class ProductDTOByNameAndPrice {
      * Поле List продуктов класса ProductDTOByNameAndPrice
      */
     private List<ProductCategoryDTOByNameAndType> productCategoryDTOS;
+    private String newProduct;
 
 
 }

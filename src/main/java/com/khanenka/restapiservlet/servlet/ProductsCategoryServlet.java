@@ -25,14 +25,16 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static com.khanenka.restapiservlet.servlet.ProductHomeServlet.CHARSET_UTF8;
+import static com.khanenka.restapiservlet.servlet.ProductServlet.CHARSET_UTF8;
+
 
 @WebServlet("/categories")
 public class ProductsCategoryServlet extends HttpServlet {
     Connection connection = DBConnection.getConnection();
-    private ProductCategoryService productCategoryService;
+
     private ProductCategoryDAOImpl productCategoryDao = new ProductCategoryDAOImpl(connection);
     private ProductDAOImpl productDao = new ProductDAOImpl(connection);
+    private ProductCategoryService productCategoryService=new ProductCategoryService(productCategoryDao,productDao);
 
     Gson gson = new Gson();
 

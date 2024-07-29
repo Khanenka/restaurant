@@ -10,8 +10,7 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.List;
 
-import static com.khanenka.restapiservlet.repository.impl.OrderDetailDaoImpl.QUERY_DELETE_ORDER_DETAIL_PRODUCT_BY_ORDER_DETAIL_ID;
-import static com.khanenka.restapiservlet.repository.impl.OrderDetailDaoImpl.QUERY_INSERT_ORDER_DETAIL_PRODUCT;
+
 
 public class OrderDetailService {
     static OrderDetailDAOImpl orderDetailDAO;
@@ -60,5 +59,9 @@ public class OrderDetailService {
 //            // Если обновление не удалось, выбрасываем исключение
 //            throw new SQLException("Failed to update order detail");
 //        }
+    }
+    private void deleteOrderDetail(OrderDetailDTO orderDetailDTO){
+        orderDetailDAO.deleteOrderDetail(orderDetailDTO);
+        orderDetailDAO.deleteOrderProductById(orderDetailDTO.getIdOrderDetail());
     }
 }

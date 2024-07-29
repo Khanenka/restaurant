@@ -14,18 +14,12 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.khanenka.restapiservlet.repository.impl.ProductCategoryDaoImpl.*;
-import static com.khanenka.restapiservlet.repository.impl.ProductCategoryDaoImpl.QUERY_DELETE_PRODUCT_PRODUCT_CATEGORY_BY_PRODUCT_NAME;
-import static com.khanenka.restapiservlet.repository.impl.ProductCategoryDaoImpl.QUERY_INSERT_PRODUCT_CATEGORY;
-import static com.khanenka.restapiservlet.repository.impl.ProductCategoryDaoImpl.QUERY_JOIN_PRODUCT_PRODUCT_CATEGORY_BY_NAME;
-import static com.khanenka.restapiservlet.repository.impl.ProductDaoImpl.*;
-import static com.khanenka.restapiservlet.repository.impl.ProductDaoImpl.PRICE_PRODUCT;
-import static org.testcontainers.shaded.com.trilead.ssh2.log.Logger.logger;
+import static com.khanenka.restapiservlet.util.QueryInDB.*;
 
 public class ProductCategoryDAOImpl implements ProductCategoryDao {
+    // Запросы SQL для операций с таблицей productcategory
+
     private Connection connection = DBConnection.getConnection();
-    static final String CATEGORY_NAME = "name";
-    static final String CATEGORY_TYPE = "type";
 
     public ProductCategoryDAOImpl(Connection connection) {
         this.connection = connection;
@@ -45,7 +39,7 @@ public class ProductCategoryDAOImpl implements ProductCategoryDao {
                 connection.commit();
             }
         } catch (SQLException e) {
-            throw new DatabaseConnectionException("Failed to add product category"); // Обработка исключения при ошибке SQL
+            throw new DatabaseConnectionException("Failed to add product category");
         } catch (IllegalArgumentException e) {
             // Обработка случая, когда цена недействительна
             throw new IllegalArgumentException(e.getMessage());
@@ -58,7 +52,7 @@ public class ProductCategoryDAOImpl implements ProductCategoryDao {
 
         ResultSet resultSet;
         try (PreparedStatement statement = connection.prepareStatement(QUERY_SELECT_ALL_PRODUCT_CATEGORY)) {
-            resultSet = statement.executeQuery(); // Выполняем запрос для получения всех категорий
+            resultSet = statement.executeQuery();
 
             while (resultSet.next()) {
                 ProductCategoryDTOByNameAndType category = new ProductCategoryDTOByNameAndType();
@@ -102,11 +96,11 @@ public class ProductCategoryDAOImpl implements ProductCategoryDao {
 
             try (PreparedStatement updateStatement = connection.prepareStatement(UPDATE_PRODUCT_CATEGORY_SQL)) {
                 updateStatement.setString(1, newCategory); // Устанавливаем новое имя категории
-                updateStatement.setString(2, String.valueOf(category.getTypeProductCategory())); // Устанавливаем тип категории
-                updateStatement.setString(3, category.getNameProductCategory()); // Условия для обновления
+                updateStatement.setString(2, String.valueOf(category.getTypeProductCategory()));
+                updateStatement.setString(3, category.getNameProductCategory());
 
-                int rowsUpdated = updateStatement.executeUpdate(); // Выполняем обновление
-
+                int rowsUpdated = updateStatement.executeUpdate();
+                if (rowsUpdated > 0) {
 
 //                        try (PreparedStatement insertCategoriesStatement = connection.prepareStatement(QUERY_INSERT_PRODUCT_PRODUCT_CATEGORY)) {
 //                            insertCategoriesStatement.setString(2, newCategory); // Устанавливаем новую категорию
@@ -120,10 +114,13 @@ public class ProductCategoryDAOImpl implements ProductCategoryDao {
 //                            connection.commit(); // Коммит транзакции
 //                        }
 
-                connection.commit();
+                    connection.commit();
+                }else {
+                    throw new SQLException("Failed to update product category");
+                }
             }
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            throw new DatabaseConnectionException("Failed to update product category");
         }
     }
 

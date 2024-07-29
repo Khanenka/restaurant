@@ -11,12 +11,13 @@ import java.sql.SQLException;
 import java.util.List;
 
 public class ProductService {
-    static ProductDAOImpl productDAO;
-    static ProductCategoryDAOImpl productCategoryDAO;
-    static OrderDetailDAOImpl orderDetailDAO;
+    ProductDAOImpl productDAO;
+    ProductCategoryDAOImpl productCategoryDAO;
+    OrderDetailDAOImpl orderDetailDAO;
 
 
-    public ProductService(ProductDAOImpl productDAO,ProductCategoryDAOImpl productCategoryDAO,OrderDetailDAOImpl orderDetailDAO) {
+    public ProductService(ProductDAOImpl productDAO,
+                          ProductCategoryDAOImpl productCategoryDAO, OrderDetailDAOImpl orderDetailDAO) {
         this.productDAO = productDAO;
         this.productCategoryDAO = productCategoryDAO;
         this.orderDetailDAO = orderDetailDAO;
@@ -32,16 +33,15 @@ public class ProductService {
         try {
             productDAO.addProduct(product);
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            throw new DatabaseConnectionException("Error in add product");
         }
     }
+
     public void updateProduct(ProductDTOByNameAndPrice product, String updatedNameProduct) {
-        try {
-            productDAO.updateProduct(product, updatedNameProduct);
-        } catch (IllegalArgumentException e) {
-            throw new DatabaseConnectionException("Error updating product: " + e.getMessage());
-        }
+        productDAO.updateProductProductCategory(product);
+        productDAO.updateProduct(product, updatedNameProduct);
     }
+
     public void deleteProduct(ProductDTOByNameAndPrice product) {
         try {
             productDAO.deleteProduct(product);
@@ -50,6 +50,7 @@ public class ProductService {
             throw new DatabaseConnectionException("Error when delete product: " + e.getMessage());
         }
     }
+
     private void validateProduct(ProductDTOByNameAndPrice product) {
         if (product.getNameProduct() == null || product.getNameProduct().isEmpty()) {
             throw new IllegalArgumentException("Product name cannot be null or empty");

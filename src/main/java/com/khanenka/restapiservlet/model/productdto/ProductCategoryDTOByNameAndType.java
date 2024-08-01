@@ -11,6 +11,7 @@ import java.util.List;
  * @author Khanenka
  * *
  * * @version 1.0
+ * @version $Id: $Id
  */
 @Getter
 @Setter
@@ -30,6 +31,9 @@ public class ProductCategoryDTOByNameAndType {
      * Поле List продуктов класса ProductCategoryDTOByNameAndType
      */
     private List<ProductDTOByNameAndPrice> productDTOS;
-
+    /**
+     * Поле новая категория класса ProductCategoryDTOByNameAndTypeAndNewCategory
+     */
+    private String newCategory;
 
 }

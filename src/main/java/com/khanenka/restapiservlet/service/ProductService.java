@@ -1,27 +1,30 @@
 package com.khanenka.restapiservlet.service;
 
-import com.khanenka.restapiservlet.exception.DatabaseConnectionException;
+
+import com.khanenka.restapiservlet.exceptions.DatabaseConnectionException;
+import com.khanenka.restapiservlet.model.productdto.ProductCategoryDTOByNameAndType;
 import com.khanenka.restapiservlet.model.productdto.ProductDTOByNameAndPrice;
-import com.khanenka.restapiservlet.repository.implementation.OrderDetailDAOImpl;
-import com.khanenka.restapiservlet.repository.implementation.ProductCategoryDAOImpl;
-import com.khanenka.restapiservlet.repository.implementation.ProductDAOImpl;
+import com.khanenka.restapiservlet.repository.OrderDetailDao;
+import com.khanenka.restapiservlet.repository.ProductCategoryDao;
+import com.khanenka.restapiservlet.repository.ProductDao;
 
 import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.util.List;
 
 public class ProductService {
-    ProductDAOImpl productDAO;
-    ProductCategoryDAOImpl productCategoryDAO;
-    OrderDetailDAOImpl orderDetailDAO;
+    ProductDao productDAO;
+    ProductCategoryDao productCategoryDAO;
+    OrderDetailDao orderDetailDAO;
 
+    public ProductService() {
+    }
 
-    public ProductService(ProductDAOImpl productDAO,
-                          ProductCategoryDAOImpl productCategoryDAO, OrderDetailDAOImpl orderDetailDAO) {
+    public ProductService(ProductDao productDAO,
+                          ProductCategoryDao productCategoryDAO, OrderDetailDao orderDetailDAO) {
         this.productDAO = productDAO;
         this.productCategoryDAO = productCategoryDAO;
         this.orderDetailDAO = orderDetailDAO;
-
     }
 
     public List<ProductDTOByNameAndPrice> getAllProducts() {
@@ -45,9 +48,11 @@ public class ProductService {
     public void deleteProduct(ProductDTOByNameAndPrice product) {
         try {
             productDAO.deleteProduct(product);
-        } catch (DatabaseConnectionException e) {
-            // Здесь вы можете логировать исключение или выполнять другую обработку
-            throw new DatabaseConnectionException("Error when delete product: " + e.getMessage());
+            productDAO.deleteProductCategories(product.getNameProduct());
+            for (ProductCategoryDTOByNameAndType category : product.getProductCategoryDTOS())
+                productCategoryDAO.deleteProductCategory(category);
+        } catch (Exception e) {
+            throw new DatabaseConnectionException("Error in delete product");
         }
     }
 

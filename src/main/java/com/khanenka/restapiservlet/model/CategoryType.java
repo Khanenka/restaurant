@@ -8,6 +8,7 @@ import lombok.Getter;
  * @author Khanenka
  * *
  * * @version 1.0
+ * @version $Id: $Id
  */
 @Getter
 public enum CategoryType {

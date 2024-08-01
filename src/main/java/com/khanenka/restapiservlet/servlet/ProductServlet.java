@@ -2,8 +2,9 @@ package com.khanenka.restapiservlet.servlet;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
-import com.khanenka.restapiservlet.exception.DatabaseConnectionException;
 import com.khanenka.restapiservlet.model.productdto.ProductDTOByNameAndPrice;
+import com.khanenka.restapiservlet.repository.ProductCategoryDao;
+import com.khanenka.restapiservlet.repository.ProductDao;
 import com.khanenka.restapiservlet.repository.implementation.OrderDetailDAOImpl;
 import com.khanenka.restapiservlet.repository.implementation.ProductCategoryDAOImpl;
 import com.khanenka.restapiservlet.repository.implementation.ProductDAOImpl;
@@ -28,14 +29,20 @@ import java.util.stream.Collectors;
 @WebServlet("/products")
 public class ProductServlet extends HttpServlet {
     static Connection connection = DBConnection.getConnection();
-    private ProductService productService;
+    ProductService productService;
     static ProductDAOImpl productDao = new ProductDAOImpl(connection);
     static ProductCategoryDAOImpl productCategoryDao = new ProductCategoryDAOImpl(connection);
     static OrderDetailDAOImpl orderDAO = new OrderDetailDAOImpl(connection);
     static final String CHARSET_UTF8 = "UTF-8";
     static Gson gson = new Gson();
 
-    public ProductServlet(ProductDAOImpl productDao, ProductCategoryDAOImpl productCategoryDao, OrderDetailDAOImpl orderDAO) {
+    public ProductServlet() {
+        super();
+    }
+
+    public ProductServlet(ProductDao productDao, ProductCategoryDao productCategoryDao,
+                          OrderDetailDAOImpl orderDAO) {
+        super();
         this.productService = new ProductService(productDao, productCategoryDao, orderDAO);
     }
 
@@ -48,8 +55,6 @@ public class ProductServlet extends HttpServlet {
         productDao.createProductCategoryTable();
         orderDAO.createOrderDetailTable();
         orderDAO.createOrderDetailProductTable();
-
-
     }
 
     @Override
@@ -57,18 +62,16 @@ public class ProductServlet extends HttpServlet {
         response.setContentType("application/json; charset=UTF-8");
         PrintWriter out = null;
         try {
+
             out = response.getWriter();
-
-
-                List<ProductDTOByNameAndPrice> products = productService.getAllProducts();
-                String jsonResponse = convertToJson(products);
-                out.print(jsonResponse);
-                response.setStatus(HttpServletResponse.SC_OK);
-            } catch (DatabaseConnectionException | IOException e) {
-                response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            }
+            List<ProductDTOByNameAndPrice> products = productService.getAllProducts();
+            String jsonResponse = convertToJson(products);
+            out.print(jsonResponse);
+            response.setStatus(HttpServletResponse.SC_OK);
+        } catch (IOException e) {
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         }
-
+    }
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) {
@@ -91,31 +94,23 @@ public class ProductServlet extends HttpServlet {
     }
 
     @Override
-    protected void doPut(HttpServletRequest request, HttpServletResponse response) throws IOException {
-
+    protected void doPut(HttpServletRequest request, HttpServletResponse response) {
         response.setCharacterEncoding(StandardCharsets.UTF_8.name());
         response.setContentType("application/json; charset=UTF-8");
-
         try (BufferedReader reader = new BufferedReader(
                 new InputStreamReader(request.getInputStream(), StandardCharsets.UTF_8))) {
-            // Считывание и десериализация JSON
             String json = reader.lines().collect(Collectors.joining());
             ProductDTOByNameAndPrice product = gson.fromJson(
                     json, ProductDTOByNameAndPrice.class);
-
-
-            // Обновление продукта через сервисный метод
             productService.updateProduct(product, product.getNewProduct());
-
             response.setStatus(HttpServletResponse.SC_OK);
-        } catch (DatabaseConnectionException e) {
-            log("Database error: " + e.getMessage());
-            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            response.getWriter().write(e.getMessage());
-        } catch (Exception e) {
+        } catch (JsonSyntaxException e) {
             log("Error updating product: " + e.getMessage());
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            response.getWriter().write(e.getMessage());
+        } catch (IOException ioException) {
+            // Handle the IOException when getting the input stream
+            log("Error retrieving input stream: " + ioException.getMessage());
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -133,14 +128,8 @@ public class ProductServlet extends HttpServlet {
             resp.setStatus(HttpServletResponse.SC_NO_CONTENT);
         } catch (JsonSyntaxException e) {
             resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            resp.getWriter().write("Invalid JSON format.");
-        } catch (DatabaseConnectionException e) {
-            resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            resp.getWriter().write("Database error: " + e.getMessage());
         } catch (Exception e) {
-            // Обработка других исключений
             resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            resp.getWriter().write("Unexpected error: " + e.getMessage());
         }
     }
 

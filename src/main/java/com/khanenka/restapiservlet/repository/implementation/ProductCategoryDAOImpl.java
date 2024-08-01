@@ -1,6 +1,7 @@
 package com.khanenka.restapiservlet.repository.implementation;
 
-import com.khanenka.restapiservlet.exception.DatabaseConnectionException;
+
+import com.khanenka.restapiservlet.exceptions.DatabaseConnectionException;
 import com.khanenka.restapiservlet.model.CategoryType;
 import com.khanenka.restapiservlet.model.productdto.ProductCategoryDTOByNameAndType;
 import com.khanenka.restapiservlet.model.productdto.ProductDTOByNameAndPrice;
@@ -17,7 +18,6 @@ import java.util.List;
 import static com.khanenka.restapiservlet.util.QueryInDB.*;
 
 public class ProductCategoryDAOImpl implements ProductCategoryDao {
-    // Запросы SQL для операций с таблицей productcategory
 
     private Connection connection = DBConnection.getConnection();
 
@@ -29,93 +29,72 @@ public class ProductCategoryDAOImpl implements ProductCategoryDao {
     public void addProductCategory(ProductCategoryDTOByNameAndType productCategory) {
         try {
             connection.setAutoCommit(false);
-            // Вставка новой категории продукта
             try (PreparedStatement categoryStatement = connection.prepareStatement(QUERY_INSERT_PRODUCT_CATEGORY)) {
                 categoryStatement.setString(1, productCategory.getNameProductCategory());
                 categoryStatement.setString(2, String.valueOf(productCategory.getTypeProductCategory()));
                 categoryStatement.executeUpdate(); // Выполняем вставку
-
-
                 connection.commit();
             }
         } catch (SQLException e) {
             throw new DatabaseConnectionException("Failed to add product category");
         } catch (IllegalArgumentException e) {
-            // Обработка случая, когда цена недействительна
             throw new IllegalArgumentException(e.getMessage());
         }
     }
 
     @Override
-    public List<ProductCategoryDTOByNameAndType> getAllProductCategories() throws SQLException {
-        List<ProductCategoryDTOByNameAndType> categoryList = new ArrayList<>(); // Список категорий
-
+    public List<ProductCategoryDTOByNameAndType> getAllProductCategories() {
+        List<ProductCategoryDTOByNameAndType> categoryList = new ArrayList<>();
         ResultSet resultSet;
         try (PreparedStatement statement = connection.prepareStatement(QUERY_SELECT_ALL_PRODUCT_CATEGORY)) {
             resultSet = statement.executeQuery();
-
             while (resultSet.next()) {
                 ProductCategoryDTOByNameAndType category = new ProductCategoryDTOByNameAndType();
                 category.setNameProductCategory(resultSet.getString(CATEGORY_NAME));
                 category.setTypeProductCategory(CategoryType.valueOf(resultSet.getString(CATEGORY_TYPE)));
-
-
                 try (ResultSet productResult = joinProductProductCategoryByName(category.getNameProductCategory())) {
-
                     List<ProductDTOByNameAndPrice> products = new ArrayList<>();
                     while (productResult.next()) {
                         ProductDTOByNameAndPrice product = new ProductDTOByNameAndPrice();
                         product.setNameProduct(productResult.getString(NAME_PRODUCT));
                         product.setPriceProduct(productResult.getBigDecimal(PRICE_PRODUCT));
-                        products.add(product); // Добавляем продукт в список
+                        products.add(product);
                     }
-
-                    category.setProductDTOS(products); // Устанавливаем список продуктов в категорию
-                    categoryList.add(category); // Добавляем категорию в общий список
-
+                    category.setProductDTOS(products);
+                    categoryList.add(category);
                 }
             }
+        } catch (SQLException e) {
+            throw new DatabaseConnectionException("error in get all product categories");
         }
-        return categoryList; // Возвращаем список всех категорий
+        return categoryList;
     }
 
-    public ResultSet joinProductProductCategoryByName(String nameProductCategory) throws SQLException {
+    public ResultSet joinProductProductCategoryByName(String nameProductCategory) {
         ResultSet productResult;
-        PreparedStatement productCategoryStatement =
-                connection.prepareStatement(QUERY_JOIN_PRODUCT_PRODUCT_CATEGORY_BY_NAME);
-        productCategoryStatement.setString(1, nameProductCategory);
-        productResult = productCategoryStatement.executeQuery();
+        try {
+            PreparedStatement productCategoryStatement =
+                    connection.prepareStatement(QUERY_JOIN_PRODUCT_PRODUCT_CATEGORY_BY_NAME);
+            productCategoryStatement.setString(1, nameProductCategory);
+            productResult = productCategoryStatement.executeQuery();
+        } catch (SQLException e) {
+            throw new DatabaseConnectionException("error in joinProductProductCategoryByName");
+        }
         return productResult;
     }
-
 
     @Override
     public void updateProductCategory(ProductCategoryDTOByNameAndType category, String newCategory) {
         try {
-            connection.setAutoCommit(false); // Отключаем автокоммит
-
+            connection.setAutoCommit(false);
             try (PreparedStatement updateStatement = connection.prepareStatement(UPDATE_PRODUCT_CATEGORY_SQL)) {
-                updateStatement.setString(1, newCategory); // Устанавливаем новое имя категории
+                updateStatement.setString(1, newCategory);
                 updateStatement.setString(2, String.valueOf(category.getTypeProductCategory()));
                 updateStatement.setString(3, category.getNameProductCategory());
-
                 int rowsUpdated = updateStatement.executeUpdate();
                 if (rowsUpdated > 0) {
-
-//                        try (PreparedStatement insertCategoriesStatement = connection.prepareStatement(QUERY_INSERT_PRODUCT_PRODUCT_CATEGORY)) {
-//                            insertCategoriesStatement.setString(2, newCategory); // Устанавливаем новую категорию
-//                            for (ProductDTOByNameAndPrice productDTOByNameAndPrice : category.getProductDTOS()) {
-//                                insertCategoriesStatement.setString(1, productDTOByNameAndPrice.getNameProduct()); // Устанавливаем имя продукта
-//
-//                                insertCategoriesStatement.addBatch(); // Добавляем в батч
-//                            }
-//                            insertCategoriesStatement.executeBatch(); // Выполняем батч
-//
-//                            connection.commit(); // Коммит транзакции
-//                        }
-
                     connection.commit();
-                }else {
+                } else {
                     throw new SQLException("Failed to update product category");
                 }
             }
@@ -130,17 +109,17 @@ public class ProductCategoryDAOImpl implements ProductCategoryDao {
             deleteCategoriesStatement.setString(1, categoryName);
             deleteCategoriesStatement.executeUpdate(); // Удаляем старые связи
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            throw new DatabaseConnectionException("error in delete product product category by name");
         }
     }
 
     @Override
     public void deleteProductCategory(ProductCategoryDTOByNameAndType category) {
         try {
-            connection.setAutoCommit(false); // Отключаем автокоммит
+            connection.setAutoCommit(false);
             try (PreparedStatement deleteStatement = connection.prepareStatement(QUERY_DELETE_PRODUCT_CATEGORY)) {
-                deleteStatement.setString(1, category.getNameProductCategory()); // Устанавливаем имя категории для удаления
-                deleteStatement.executeUpdate(); // Выполняем удаление
+                deleteStatement.setString(1, category.getNameProductCategory());
+                deleteStatement.executeUpdate();
                 connection.commit();
             }
         } catch (SQLException e) {
@@ -151,23 +130,16 @@ public class ProductCategoryDAOImpl implements ProductCategoryDao {
     public void addProductJoinProductCategory(String nameProduct, String productCategory) {
         try {
             connection.setAutoCommit(false);
-
-            try {
-                PreparedStatement productCategoryStatement = connection.prepareStatement(QUERY_INSERT_PRODUCT_PRODUCT_CATEGORY);
-                {
-                    // Связываем продукт с категорией
-                    productCategoryStatement.setString(1, nameProduct);
-                    productCategoryStatement.setString(2, productCategory);
-                    productCategoryStatement.executeUpdate();
-                    connection.commit();
-                }
-
-            } catch (SQLException ex) {
-                throw new RuntimeException(ex);
+            try (PreparedStatement productCategoryStatement = connection.prepareStatement(
+                    QUERY_INSERT_PRODUCT_PRODUCT_CATEGORY)) {
+                // Связываем продукт с категорией
+                productCategoryStatement.setString(1, nameProduct);
+                productCategoryStatement.setString(2, productCategory);
+                productCategoryStatement.executeUpdate();
+                connection.commit();
             }
-
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
+        } catch (SQLException ex) {
+            throw new DatabaseConnectionException("add product join product category");
         }
     }
 }

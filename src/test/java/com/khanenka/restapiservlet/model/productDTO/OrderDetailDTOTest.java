@@ -1,6 +1,8 @@
-package com.khanenka.restapiservlet.model.productdto;
+package com.khanenka.restapiservlet.model.productDTO;
 
 import com.khanenka.restapiservlet.model.OrderStatus;
+import com.khanenka.restapiservlet.model.productdto.OrderDetailDTO;
+import com.khanenka.restapiservlet.model.productdto.ProductDTO;
 import org.junit.Test;
 
 import java.math.BigDecimal;

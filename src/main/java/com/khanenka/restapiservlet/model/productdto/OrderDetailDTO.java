@@ -12,6 +12,7 @@ import java.util.List;
  * @author Khanenka
  * *
  * * @version 1.0
+ * @version $Id: $Id
  */
 @Getter
 @Setter
@@ -35,5 +36,4 @@ public class OrderDetailDTO {
      * Поле List продуктов класса OrderDetail
      */
     private List<ProductDTO> products; // (OneToMany)
-
 }

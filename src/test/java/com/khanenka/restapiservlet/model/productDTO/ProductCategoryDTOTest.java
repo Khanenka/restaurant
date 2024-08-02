@@ -36,12 +36,13 @@ public class ProductCategoryDTOTest {
         productCategoryDTO.setIdProductCategory(newId);
         productCategoryDTO.setNameProductCategory("New Category 1");
         productCategoryDTO.setTypeProductCategory(CategoryType.FISH);
-        ProductDTO newProductDto = new ProductDTO(1L, "Another Product", new BigDecimal("49.99"));
+        ProductDTO newProductDto = new ProductDTO(
+                1L, "Another Product", new BigDecimal("49.99"));
         List<ProductDTO> newProductDTOS = Arrays.asList(newProductDto);
         productCategoryDTO.setProductDTOS(newProductDTOS);
         assertEquals(productCategoryDTO.getIdProductCategory(), newId);
-        assertEquals( "New Category 1",productCategoryDTO.getNameProductCategory());
-        assertEquals( CategoryType.FISH,productCategoryDTO.getTypeProductCategory());
+        assertEquals("New Category 1", productCategoryDTO.getNameProductCategory());
+        assertEquals(CategoryType.FISH, productCategoryDTO.getTypeProductCategory());
         assertEquals(productCategoryDTO.getProductDTOS(), newProductDTOS);
     }
 
@@ -49,9 +50,11 @@ public class ProductCategoryDTOTest {
     public void testToString() {
         long idProductCategory = 1L;
         ProductCategoryDTO productCategoryDTO =
-                new ProductCategoryDTO(idProductCategory, "Category1", CategoryType.DRINK, null);
+                new ProductCategoryDTO(
+                        idProductCategory, "Category1", CategoryType.DRINK, null);
         String result = productCategoryDTO.toString();
-        String expected = "ProductCategoryDTO(idProductCategory=1, nameProductCategory=Category1, typeProductCategory=DRINK, productDTOS=null)";
+        String expected = "ProductCategoryDTO(idProductCategory=1," +
+                " nameProductCategory=Category1, typeProductCategory=DRINK, productDTOS=null)";
         assertEquals(result, expected);
     }
 }

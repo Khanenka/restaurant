@@ -1,6 +1,9 @@
 package com.khanenka.restapiservlet.util;
 
 public class QueryInDB {
+    private QueryInDB() {
+    }
+
     public static final String QUERY_INSERT_ORDER_DETAIL = "INSERT INTO order_detail" +
             " (order_detail_id,order_status, total_amount) VALUES (?,?,?)";
     public static final String QUERY_SELECT_ALL_ORDER_DETAIL = "SELECT DISTINCT * FROM order_detail";
@@ -35,12 +38,15 @@ public class QueryInDB {
             " WHERE name = ?";
     public static final String UPDATE_PRODUCT_PRODUCT_CATEGORY_BY_NAME = "UPDATE product_productcategory" +
             " set \"nameproduct\" = ? WHERE \"nameproduct\" = ?";
-    public static final String QUERY_CREATE_TABLE_PRODUCT = "create table if not exists product " +
-            "(idproduct SERIAL PRIMARY KEY,\n" +
-            "nameproduct character varying(100),\n" +
-            "priceproduct decimal(10,2),\n" +
-            "quantityproduct INT,\n" +
-            "availableproduct boolean)";
+    public static final String QUERY_CREATE_TABLE_PRODUCT = """
+            create table if not exists product (
+                idproduct SERIAL PRIMARY KEY,
+                nameproduct character varying(100),
+                priceproduct decimal(10,2),
+                quantityproduct INT,
+                availableproduct boolean
+            )
+            """;
     public static final String QUERY_INSERT_PRODUCT = "INSERT INTO product (nameproduct, priceproduct) VALUES (?,?)";
     public static final String QUERY_SELECT_ALL_PRODUCT = "SELECT \"nameproduct\",\"priceproduct\"," +
             "\"quantityproduct\",\"availableproduct\" FROM product";

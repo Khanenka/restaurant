@@ -64,6 +64,7 @@ public class ProductDAOImpl implements ProductDao {
             throw e;
         }
     }
+
     @Override
     public void addProductById(ProductDTO product) {
         try
@@ -72,12 +73,11 @@ public class ProductDAOImpl implements ProductDao {
             productStatement.setString(2, product.getNameProduct());
             productStatement.setBigDecimal(3, product.getPriceProduct());
             productStatement.executeUpdate();
-            connection.commit();
         } catch (SQLException e) {
             throw new DatabaseConnectionException("Error while adding product");
-
         }
     }
+
     private void addProductJoinProductCategory(String nameProduct, String productCategory) {
         try (PreparedStatement statement = connection.prepareStatement(QUERY_INSERT_PRODUCT_PRODUCT_CATEGORY)) {
             statement.setString(1, nameProduct);
@@ -154,13 +154,18 @@ public class ProductDAOImpl implements ProductDao {
         }
     }
 
+    @Override
     public void updateProductProductCategory(ProductDTOByNameAndPrice productDTOByNameAndPrice) {
-        try
-                (PreparedStatement updateStatement = connection.prepareStatement(
-                        UPDATE_PRODUCT_PRODUCT_CATEGORY_BY_NAME)) {
-            updateStatement.setString(1, productDTOByNameAndPrice.getNewProduct());
-            updateStatement.setString(2, productDTOByNameAndPrice.getNameProduct());
-            updateStatement.executeUpdate();
+        try {
+            connection.setAutoCommit(false);
+            try
+                    (PreparedStatement updateStatement = connection.prepareStatement(
+                            UPDATE_PRODUCT_PRODUCT_CATEGORY_BY_NAME)) {
+                updateStatement.setString(1, productDTOByNameAndPrice.getNewProduct());
+                updateStatement.setString(2, productDTOByNameAndPrice.getNameProduct());
+                updateStatement.executeUpdate();
+                connection.commit();
+            }
         } catch (SQLException e) {
             throw new DatabaseConnectionException("error ind update product product_category");
         }

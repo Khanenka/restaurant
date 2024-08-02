@@ -33,12 +33,12 @@ public class ProductTest {
 
     @Test
     public void testProductQuantity() {
-        assertEquals(0, product.getQuantityProduct()); // предполагаем, что количество по умолчанию 0
+        assertEquals(0, product.getQuantityProduct());
     }
 
     @Test
     public void testProductAvailability() {
-        assertFalse(product.isAvailableProduct()); // предполагаем, что доступность по умолчанию false
+        assertFalse(product.isAvailableProduct());
     }
 
 }

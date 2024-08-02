@@ -12,7 +12,6 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.testcontainers.shaded.com.fasterxml.jackson.databind.ObjectMapper;
 
-import javax.servlet.ServletException;
 import javax.servlet.ServletInputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -22,7 +21,6 @@ import java.io.InputStream;
 import java.io.PrintWriter;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
-import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.List;
 
@@ -46,6 +44,12 @@ public class OrderDetailServletTest {
         orderDetailServlet = new OrderDetailsServlet(orderDetailDaoMock, productMock);
         requestMock = Mockito.mock(HttpServletRequest.class);
         responseMock = Mockito.mock(HttpServletResponse.class);
+    }
+
+    @Test
+    public void testConstructor() {
+        assertNotNull(orderDetailServlet);
+        assertNotNull(orderDetailServlet.orderDetailService);
     }
 
     @Test
@@ -122,7 +126,7 @@ public class OrderDetailServletTest {
     }
 
     @Test
-    public void testDoPost_JsonSyntaxException() throws IOException, ServletException {
+    public void testDoPost_JsonSyntaxException() throws IOException {
         String invalidJson = "{invalid json}";
         InputStream inputStream = new java.io.ByteArrayInputStream(invalidJson.getBytes(StandardCharsets.UTF_8));
         MockServletInputStream mockServletInputStream = new MockServletInputStream(inputStream.toString());
@@ -130,6 +134,18 @@ public class OrderDetailServletTest {
         when(requestMock.getCharacterEncoding()).thenReturn(StandardCharsets.UTF_8.name());
         when(responseMock.getCharacterEncoding()).thenReturn(StandardCharsets.UTF_8.name());
         orderDetailServlet.doPost(requestMock, responseMock);
+        verify(responseMock).setStatus(HttpServletResponse.SC_BAD_REQUEST);
+    }
+
+    @Test
+    public void testDoDelete_JsonSyntaxException() throws IOException {
+        String invalidJson = "{invalid json}";
+        InputStream inputStream = new java.io.ByteArrayInputStream(invalidJson.getBytes(StandardCharsets.UTF_8));
+        MockServletInputStream mockServletInputStream = new MockServletInputStream(inputStream.toString());
+        when(requestMock.getInputStream()).thenReturn(mockServletInputStream);
+        when(requestMock.getCharacterEncoding()).thenReturn(StandardCharsets.UTF_8.name());
+        when(responseMock.getCharacterEncoding()).thenReturn(StandardCharsets.UTF_8.name());
+        orderDetailServlet.doDelete(requestMock, responseMock);
         verify(responseMock).setStatus(HttpServletResponse.SC_BAD_REQUEST);
     }
 
@@ -165,7 +181,7 @@ public class OrderDetailServletTest {
     }
 
     @Test
-    public void testDoPut_Exception() throws IOException, ServletException, SQLException {
+    public void testDoPut_Exception() throws IOException {
         String json = "{\"id\":1,\"name\":\"Test Order\"}";
         MockServletInputStream mockServletInputStream = new MockServletInputStream(json);
         when(requestMock.getInputStream()).thenReturn(mockServletInputStream);
@@ -196,6 +212,21 @@ public class OrderDetailServletTest {
         verify(orderDetailDaoMock).deleteOrderDetail(orderDetailCaptor.capture());
         assertEquals(1, orderDetailCaptor.getValue().getIdOrderDetail());
         verify(responseMock, never()).setStatus(HttpServletResponse.SC_BAD_REQUEST);
+    }
+
+    @Test
+    public void shouldSetStatusBadRequestOnJsonSyntaxException() throws IOException {
+        when(requestMock.getInputStream()).thenThrow(new IOException("Simulated IOException"));
+        orderDetailServlet.doDelete(requestMock, responseMock);
+        verify(responseMock).setStatus(HttpServletResponse.SC_BAD_REQUEST);
+    }
+
+    @Test
+    public void shouldHandleNullPointerExceptionGracefully() throws IOException {
+        when(requestMock.getInputStream()).thenReturn(new MockServletInputStream("{\"invalidJson\":}"));
+        when(requestMock.getCharacterEncoding()).thenReturn("UTF-8");
+        orderDetailServlet.doDelete(requestMock, responseMock);
+        verify(responseMock).setStatus(HttpServletResponse.SC_BAD_REQUEST);
     }
 
     private static class MockServletInputStream extends ServletInputStream {

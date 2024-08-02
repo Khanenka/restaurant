@@ -15,7 +15,6 @@ public class OrderStatusTest {
                 OrderStatus.DELIVERED,
                 OrderStatus.CANCELLED
         };
-
         assertArrayEquals(expectedStatuses, OrderStatus.values());
     }
 
@@ -33,12 +32,10 @@ public class OrderStatusTest {
                 "DELIVERED",
                 "CANCELLED"
         };
-
         String[] actualNames = new String[OrderStatus.values().length];
         for (int i = 0; i < OrderStatus.values().length; i++) {
             actualNames[i] = OrderStatus.values()[i].name();
         }
-
         assertArrayEquals(expectedNames, actualNames);
     }
 

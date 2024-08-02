@@ -84,7 +84,6 @@ public class OrderDetailsServlet extends HttpServlet {
             orderDetailService.updateOrderDetail(orderDetailDTO);
         } catch (JsonSyntaxException e) {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
         } catch (Exception e) {
             e.printStackTrace();
         }

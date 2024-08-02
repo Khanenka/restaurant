@@ -22,7 +22,8 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.mockito.Mockito.*;
 
 @Testcontainers
@@ -33,7 +34,6 @@ public class OrderDetailDaoImplTest {
     private ProductDao productDao = new ProductDAOImpl(connection);
     private ProductCategoryDao productCategoryDao = new ProductCategoryDAOImpl(connection);
     private OrderDetailDao orderDetailDao = new OrderDetailDAOImpl();
-
 
     @Rule
     public PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:13");
@@ -94,7 +94,8 @@ public class OrderDetailDaoImplTest {
 
     @Test
     public void getAllOrderDetails() throws Exception {
-        orderDetailDao = new OrderDetailDAOImpl(DriverManager.getConnection(postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword()));
+        orderDetailDao = new OrderDetailDAOImpl(DriverManager.getConnection(
+                postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword()));
         ProductCategoryDTOByNameAndType productCategoryDTO = new ProductCategoryDTOByNameAndType();
         productCategoryDTO.setNameProductCategory("Category 2");
         productCategoryDTO.setTypeProductCategory(CategoryType.DRINK);
@@ -176,7 +177,7 @@ public class OrderDetailDaoImplTest {
     @Test
     public void deleteOrderDetailProductByIdTest() throws SQLException {
         OrderDetailDTO orderDetailDTO = new OrderDetailDTO();
-        long id=0;
+        long id = 0;
         orderDetailDTO.setIdOrderDetail(2);
         orderDetailDTO.setOrderStatus(OrderStatus.PENDING); // Initial order status
         orderDetailDTO.setTotalAmauntOrderDetail(new BigDecimal("20.00"));
@@ -186,11 +187,12 @@ public class OrderDetailDaoImplTest {
         orderDetailDTO.setProducts(productDTOList);
         orderDetailDao.addOrderDetailProduct(orderDetailDTO);
         orderDetailDao.deleteOrderDetailProductById(2);
-        PreparedStatement statement = connection.prepareStatement("select order_detail_id from order_detail_product");
-        ResultSet resultSet=statement.executeQuery();
-        while (resultSet.next()){
-             id = resultSet.getLong("order_detail_id");
+        PreparedStatement statement = connection.prepareStatement(
+                "select order_detail_id from order_detail_product");
+        ResultSet resultSet = statement.executeQuery();
+        while (resultSet.next()) {
+            id = resultSet.getLong("order_detail_id");
         }
-        assertEquals(0,id);
+        assertEquals(0, id);
     }
 }

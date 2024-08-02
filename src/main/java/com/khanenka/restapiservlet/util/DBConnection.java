@@ -35,13 +35,12 @@ public class DBConnection {
     public static Connection getConnection() {
         if (connection == null) {
             try {
-                // Загружаем настройки из файла properties
                 Properties properties = new Properties();
-                try (InputStream input = DBConnection.class.getClassLoader().getResourceAsStream("db.properties")) {
+                try (InputStream input =
+                             DBConnection.class.getClassLoader().getResourceAsStream("db.properties")) {
                     if (input == null) {
                         return null;
                     }
-                    // Загружаем свойства
                     properties.load(input);
                 }
                 String url = properties.getProperty("dbUrl");
@@ -54,18 +53,12 @@ public class DBConnection {
                         .withDatabaseName(url)
                         .withUsername(user)
                         .withPassword(password);
-
-                // Запускаем контейнер
                 postgreSQLContainer.start();
-
-                // Получаем параметры подключения
                 String urlContainer = postgreSQLContainer.getJdbcUrl();
                 String userContainer = postgreSQLContainer.getUsername();
                 String passwordContainer = postgreSQLContainer.getPassword();
                 Class.forName(driver);
-                // Получаем соединение
                 connection = DriverManager.getConnection(urlContainer, userContainer, passwordContainer);
-
             } catch (ClassNotFoundException | SQLException e) {
                 throw new RuntimeException(e);
             }catch (IOException e) {
@@ -74,7 +67,4 @@ public class DBConnection {
         }
         return connection;
     }
-
-    // Также не забудьте реализовать метод закрытия соединения и контейнера
-
 }

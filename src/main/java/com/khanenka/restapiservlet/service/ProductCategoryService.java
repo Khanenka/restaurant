@@ -11,8 +11,8 @@ import java.util.List;
 
 
 public class ProductCategoryService {
-     ProductCategoryDAOImpl productCategoryDAO;
-     ProductDAOImpl productDAO;
+    ProductCategoryDAOImpl productCategoryDAO;
+    ProductDAOImpl productDAO;
 
     public ProductCategoryService() {
     }
@@ -23,7 +23,7 @@ public class ProductCategoryService {
     }
 
     public List<ProductCategoryDTOByNameAndType> getAllProductCategory() {
-            return productCategoryDAO.getAllProductCategories();
+        return productCategoryDAO.getAllProductCategories();
     }
 
     public void addProductCategory(ProductCategoryDTOByNameAndType productCategory) throws SQLException {

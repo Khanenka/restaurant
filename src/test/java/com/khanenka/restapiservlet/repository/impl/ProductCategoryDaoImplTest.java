@@ -4,7 +4,6 @@ import com.khanenka.restapiservlet.exceptions.DatabaseConnectionException;
 import com.khanenka.restapiservlet.model.CategoryType;
 import com.khanenka.restapiservlet.model.productdto.ProductCategoryDTOByNameAndType;
 import com.khanenka.restapiservlet.model.productdto.ProductDTOByNameAndPrice;
-import com.khanenka.restapiservlet.repository.ProductCategoryDao;
 import com.khanenka.restapiservlet.repository.ProductDao;
 import com.khanenka.restapiservlet.repository.implementation.ProductCategoryDAOImpl;
 import com.khanenka.restapiservlet.repository.implementation.ProductDAOImpl;
@@ -22,52 +21,41 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.khanenka.restapiservlet.util.QueryInDB.QUERY_JOIN_PRODUCT_PRODUCT_CATEGORY_BY_NAME;
-import static com.khanenka.restapiservlet.util.QueryInDB.QUERY_SELECT_ALL_PRODUCT_CATEGORY;
 import static junit.framework.TestCase.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
 
 @Testcontainers
 public class ProductCategoryDaoImplTest {
     private Connection connection = DBConnection.getConnection();
     private ProductDao productDao = new ProductDAOImpl(connection);
     private ProductCategoryDAOImpl productCategoryDao = new ProductCategoryDAOImpl(connection);
-    //    @Mock
-//    private ResultSet resultSet;
+
     @Mock
     private PreparedStatement preparedStatement;
 
     @Before
-    public void createTableProduct() throws SQLException {
+    public void createTableProduct() {
         productDao = new ProductDAOImpl(connection);
         productCategoryDao = new ProductCategoryDAOImpl(connection);
         productDao.createTableProduct();
     }
 
     @Before
-    public void createProductCategoryTable() throws SQLException {
+    public void createProductCategoryTable() {
         productDao = new ProductDAOImpl(connection);
         productDao.createProductCategoryTable();
     }
 
     @Before
-    public void createProductProductCategory() throws SQLException {
+    public void createProductProductCategory() {
         productDao = new ProductDAOImpl(connection);
         productDao.createProductProductCategory();
     }
 
     @Test
     public void testProductCategoryDaoImpl() {
-        productCategoryDao = new ProductCategoryDAOImpl(connection);
-        assertNotNull(productCategoryDao);
-    }
-
-    @Test
-    public void testProductCategoryDaoImplConnection() {
         productCategoryDao = new ProductCategoryDAOImpl(connection);
         assertNotNull(productCategoryDao);
     }
@@ -119,7 +107,7 @@ public class ProductCategoryDaoImplTest {
     }
 
     @Test
-    public void testGetAllProductCategoriesHandlesEmptyResultSet() throws SQLException {
+    public void testGetAllProductCategoriesHandlesEmptyResultSet() {
         List<ProductCategoryDTOByNameAndType> categories = productCategoryDao.getAllProductCategories();
         System.out.println(categories.isEmpty());
         System.out.println(categories);
@@ -165,7 +153,8 @@ public class ProductCategoryDaoImplTest {
 
     @Test
     public void deleteProductProductCategoryByName() {
-        productCategoryDao.addProductJoinProductCategory("Test product name", "Test category name");
+        productCategoryDao.addProductJoinProductCategory(
+                "Test product name", "Test category name");
         ResultSet productResult;
         String name = null;
         try {
@@ -183,8 +172,29 @@ public class ProductCategoryDaoImplTest {
     }
 
     @Test
+    public void testUpdateNonExistentProductCategory() {
+        ProductCategoryDTOByNameAndType nonExistentCategory = new ProductCategoryDTOByNameAndType();
+        nonExistentCategory.setNameProductCategory("Non-Existent Category");
+        nonExistentCategory.setTypeProductCategory(CategoryType.DRINK);
+
+        Exception exception = assertThrows(DatabaseConnectionException.class, () -> {
+            productCategoryDao.updateProductCategory(nonExistentCategory, "New Category Name");
+        });
+        assertEquals("Failed to update product category", exception.getMessage());
+    }
+
+    @Test
+    public void testDeleteNonExistentProductCategory() {
+        ProductCategoryDTOByNameAndType nonExistentCategory = new ProductCategoryDTOByNameAndType();
+        nonExistentCategory.setNameProductCategory("Non-Existent Category");
+        nonExistentCategory.setTypeProductCategory(CategoryType.DRINK);
+        assertDoesNotThrow(() -> productCategoryDao.deleteProductCategory(nonExistentCategory));
+    }
+
+    @Test
     public void testAddProductJoinProductCategorySuccess() {
-        productCategoryDao.addProductJoinProductCategory("Test product name", "Test category name");
+        productCategoryDao.addProductJoinProductCategory(
+                "Test product name", "Test category name");
         ResultSet productResult;
         String name = null;
         String productName = null;

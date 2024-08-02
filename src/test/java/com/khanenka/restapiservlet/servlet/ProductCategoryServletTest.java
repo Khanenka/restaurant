@@ -40,7 +40,7 @@ public class ProductCategoryServletTest {
         productDao = mock(ProductDAOImpl.class);
         gson = new Gson();
         writer = mock(PrintWriter.class);
-        servlet = new ProductsCategoryServlet(productDao,productCategoryDao);
+        servlet = new ProductsCategoryServlet(productDao, productCategoryDao);
     }
 
     @Test
@@ -61,26 +61,21 @@ public class ProductCategoryServletTest {
 
     @Test
     public void testDoGet_Success() throws IOException {
-        // Mock HTTP request and response
         HttpServletRequest req = mock(HttpServletRequest.class);
         HttpServletResponse resp = mock(HttpServletResponse.class);
         List<ProductCategoryDTOByNameAndType> categoryList = new ArrayList<>();
         ProductCategoryDTOByNameAndType productCategoryDTOByNameAndType = new ProductCategoryDTOByNameAndType(
                 "Test", CategoryType.DRINK, null, "new category");
         categoryList.add(productCategoryDTOByNameAndType); // Modify accordingly
-
-        // Setup mock behavior
         when(productCategoryDao.getAllProductCategories()).thenReturn(categoryList);
         when(resp.getWriter()).thenReturn(writer);
-        // Call doGet
         servlet.doGet(req, resp);
         verify(writer).print(contains("Test"));
         verify(resp).setContentType("application/json");
     }
 
     @Test
-    public void testDoPut_Success() throws IOException, SQLException {
-        // Prepare
+    public void testDoPut_Success() throws IOException {
         HttpServletRequest request = mock(HttpServletRequest.class);
         HttpServletResponse response = mock(HttpServletResponse.class);
         String jsonInput =
@@ -116,7 +111,8 @@ public class ProductCategoryServletTest {
         MockServletInputStream mockServletInputStream = new MockServletInputStream(jsonInput);
         when(req.getInputStream()).thenReturn(mockServletInputStream);
         servlet.doDelete(req, resp);
-        ArgumentCaptor<ProductCategoryDTOByNameAndType> categoryCaptor = ArgumentCaptor.forClass(ProductCategoryDTOByNameAndType.class);
+        ArgumentCaptor<ProductCategoryDTOByNameAndType> categoryCaptor =
+                ArgumentCaptor.forClass(ProductCategoryDTOByNameAndType.class);
         verify(productCategoryDao).deleteProductCategory(categoryCaptor.capture());
         ProductCategoryDTOByNameAndType deletedCategory = categoryCaptor.getValue();
         assertEquals("Test", deletedCategory.getNameProductCategory());
@@ -149,6 +145,7 @@ public class ProductCategoryServletTest {
 
     private static class MockServletInputStream extends ServletInputStream {
         private final InputStream inputStream;
+
         public MockServletInputStream(String input) {
             this.inputStream = new ByteArrayInputStream(input.getBytes(StandardCharsets.UTF_8));
         }

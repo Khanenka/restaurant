@@ -11,7 +11,8 @@ import static org.junit.Assert.*;
 import static org.mockito.Mockito.mock;
 
 public class OrderDetailTest {
-    private OrderDetail orderDetail = orderDetail = new OrderDetail(1L, OrderStatus.DELIVERED, BigDecimal.valueOf(100), null);
+    private OrderDetail orderDetail = orderDetail =
+            new OrderDetail(1L, OrderStatus.DELIVERED, BigDecimal.valueOf(100), null);
     private OrderStatus orderStatus;
     private List<Product> products;
 
@@ -77,9 +78,10 @@ public class OrderDetailTest {
 
     @Test
     public void testEqualsAndHashCode() {
-        OrderDetail orderDetail2 = new OrderDetail(1L, OrderStatus.DELIVERED, BigDecimal.valueOf(100), products);
-        OrderDetail orderDetail3 = new OrderDetail(2L, OrderStatus.DELIVERED, BigDecimal.valueOf(200), products);
-
+        OrderDetail orderDetail2 =
+                new OrderDetail(1L, OrderStatus.DELIVERED, BigDecimal.valueOf(100), products);
+        OrderDetail orderDetail3 =
+                new OrderDetail(2L, OrderStatus.DELIVERED, BigDecimal.valueOf(200), products);
         assertEquals(orderDetail, orderDetail2);
         assertNotEquals(orderDetail, orderDetail3);
         assertEquals(orderDetail.hashCode(), orderDetail2.hashCode());

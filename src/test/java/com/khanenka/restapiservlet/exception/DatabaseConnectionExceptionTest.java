@@ -14,5 +14,4 @@ public class DatabaseConnectionExceptionTest {
         DatabaseConnectionException exception = new DatabaseConnectionException(expectedMessage);
         assertEquals(expectedMessage, exception.getMessage());
     }
-
 }

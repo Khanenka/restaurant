@@ -25,16 +25,12 @@ public class DBConnectionTest {
         assertNotNull("Connection should not be null", connection);
     }
 
-
     @Test
     public void testSingletonBehaviour() throws Exception {
         Connection connection1 = DBConnection.getConnection();
         Connection connection2 = DBConnection.getConnection();
         assertSame("Both connections should be the same instance", connection1, connection2);
         connection1.close();
-        connection2.close(); // Закрываем соединения
+        connection2.close();
     }
-
-
-
 }

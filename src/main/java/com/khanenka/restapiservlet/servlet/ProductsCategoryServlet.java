@@ -27,11 +27,9 @@ import static com.khanenka.restapiservlet.servlet.ProductServlet.CHARSET_UTF8;
 @WebServlet("/categories")
 public class ProductsCategoryServlet extends HttpServlet {
     static Connection connection = DBConnection.getConnection();
-
     static ProductCategoryDAOImpl productCategoryDao = new ProductCategoryDAOImpl(connection);
     static ProductDAOImpl productDao = new ProductDAOImpl(connection);
-    ProductCategoryService productCategoryService=new ProductCategoryService(productCategoryDao,productDao);
-
+    ProductCategoryService productCategoryService = new ProductCategoryService(productCategoryDao, productDao);
     static Gson gson = new Gson();
 
     public ProductsCategoryServlet() {
@@ -40,8 +38,9 @@ public class ProductsCategoryServlet extends HttpServlet {
 
     public ProductsCategoryServlet(ProductDAOImpl productDao, ProductCategoryDAOImpl productCategoryDao) {
         super();
-        this.productCategoryService = new ProductCategoryService(productCategoryDao,productDao);
+        this.productCategoryService = new ProductCategoryService(productCategoryDao, productDao);
     }
+
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) {
         response.setContentType("application/json; charset=UTF-8");
@@ -87,10 +86,8 @@ public class ProductsCategoryServlet extends HttpServlet {
             ProductCategoryDTOByNameAndType product = gson.fromJson(
                     json, ProductCategoryDTOByNameAndType.class);
             productCategoryService.updateProductCategory(product, product.getNewCategory());
-        } catch (JsonSyntaxException e) {
+        } catch (JsonSyntaxException | IOException e) {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-        } catch (Exception e) {
-            e.printStackTrace();
         }
     }
 
@@ -107,10 +104,7 @@ public class ProductsCategoryServlet extends HttpServlet {
             productCategoryService.deleteProductCategory(productCategory);
         } catch (JsonSyntaxException e) {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-        } catch (RuntimeException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+        } catch (RuntimeException | IOException e) {
             e.printStackTrace();
         }
     }

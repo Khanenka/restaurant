@@ -62,7 +62,6 @@ public class ProductServlet extends HttpServlet {
         response.setContentType("application/json; charset=UTF-8");
         PrintWriter out = null;
         try {
-
             out = response.getWriter();
             List<ProductDTOByNameAndPrice> products = productService.getAllProducts();
             String jsonResponse = convertToJson(products);
@@ -86,9 +85,6 @@ public class ProductServlet extends HttpServlet {
             productService.addProduct(product);
             response.setStatus(HttpServletResponse.SC_CREATED);
         } catch (Exception e) {
-            // Логирование ошибки при добавлении продукта
-            log("Error add product: " + e.getMessage());
-            // Установка статуса ответа на 500 (Internal Server Error)
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         }
     }
@@ -105,17 +101,14 @@ public class ProductServlet extends HttpServlet {
             productService.updateProduct(product, product.getNewProduct());
             response.setStatus(HttpServletResponse.SC_OK);
         } catch (JsonSyntaxException e) {
-            log("Error updating product: " + e.getMessage());
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
         } catch (IOException ioException) {
-            // Handle the IOException when getting the input stream
-            log("Error retrieving input stream: " + ioException.getMessage());
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         }
     }
 
     @Override
-    protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+    protected void doDelete(HttpServletRequest req, HttpServletResponse resp) {
         try {
             req.setCharacterEncoding(CHARSET_UTF8);
             resp.setCharacterEncoding(CHARSET_UTF8);
@@ -124,7 +117,6 @@ public class ProductServlet extends HttpServlet {
             String json = reader.lines().collect(Collectors.joining());
             ProductDTOByNameAndPrice product = gson.fromJson(json, ProductDTOByNameAndPrice.class);
             productService.deleteProduct(product);
-            // Успешный ответ
             resp.setStatus(HttpServletResponse.SC_NO_CONTENT);
         } catch (JsonSyntaxException e) {
             resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
@@ -137,4 +129,3 @@ public class ProductServlet extends HttpServlet {
         return gson.toJson(products);
     }
 }
-

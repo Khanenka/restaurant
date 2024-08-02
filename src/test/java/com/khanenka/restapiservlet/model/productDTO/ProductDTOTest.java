@@ -47,7 +47,8 @@ public class ProductDTOTest {
 
     @Test
     public void testToString() {
-        ProductDTO productDTO = new ProductDTO(1L, "Test Product", new BigDecimal("99.99"), null);
+        ProductDTO productDTO = new ProductDTO(
+                1L, "Test Product", new BigDecimal("99.99"), null);
         String result = productDTO.toString();
         String expected = "ProductDTO(idProduct=1, nameProduct=Test Product, priceProduct=99.99, productCategory=null)";
         assertEquals(result, expected);
